@@ -1,3 +1,28 @@
+@font-face {
+  font-family: 'HubotSans';
+  src: url('/HubotSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HubotSans';
+  src: url('/HubotSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HubotSans';
+  src: url('/HubotSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HubotSans';
+  src: url('/HubotSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +30,8 @@
 }
 
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'HubotSans', 'Segoe UI', Arial, sans-serif;
+  font-weight: 400;
   background: #fff;
   color: #222;
   font-size: 14px;
@@ -23,9 +49,9 @@ a {
 
 button {
   cursor: pointer;
-  font-family: inherit;
+  font-family: 'HubotSans', 'Segoe UI', Arial, sans-serif;
 }
 
-input {
-  font-family: inherit;
+input, textarea, select {
+  font-family: 'HubotSans', 'Segoe UI', Arial, sans-serif;
 }
