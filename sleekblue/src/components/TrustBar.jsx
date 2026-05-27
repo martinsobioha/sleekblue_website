@@ -3,6 +3,7 @@ import ubaLogo from '@assets/UBA_LOGO_1779921080597.jpg'
 import mtnLogo from '@assets/MTN_LOGO_1779921080594.jpg'
 import heroLogo from '@assets/HERO_LOGO_1779921080592.jpg'
 import imoDigitalLogo from '@assets/IMO_DIGITAL_CITY_LIMITED_LOGO_1779921080594.jpg'
+import nnpcLogo from '@assets/NNPC_LOGO_1779922059067.jpg'
 import seplatLogo from '@assets/SEPLAT_LOGO_1779921080595.jpg'
 
 const logos = [
@@ -10,6 +11,7 @@ const logos = [
   { src: mtnLogo, alt: 'MTN' },
   { src: heroLogo, alt: 'HERO' },
   { src: imoDigitalLogo, alt: 'Imo Digital City Limited' },
+  { src: nnpcLogo, alt: 'NNPC' },
   { src: seplatLogo, alt: 'Seplat Energy' },
 ]
 
@@ -40,7 +42,7 @@ export default function TrustBar() {
             display: flex;
             align-items: center;
             width: max-content;
-            animation: marquee 18s linear infinite;
+            animation: marquee 20s linear infinite;
           }
           .marquee-track:hover {
             animation-play-state: paused;
@@ -48,25 +50,8 @@ export default function TrustBar() {
         `}</style>
 
         <div className="marquee-track">
-          {/* First set */}
-          {logos.map((logo, i) => (
-            <div key={`a-${i}`} style={{
-              padding: '0 48px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <img
-                src={logo.src}
-                alt={logo.alt}
-                style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'grayscale(100%) opacity(0.7)' }}
-              />
-            </div>
-          ))}
-          {/* Duplicate set for seamless loop */}
-          {logos.map((logo, i) => (
-            <div key={`b-${i}`} style={{
+          {[...logos, ...logos].map((logo, i) => (
+            <div key={i} style={{
               padding: '0 48px',
               display: 'flex',
               alignItems: 'center',
