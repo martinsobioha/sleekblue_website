@@ -1,4 +1,5 @@
 import { FaPhoneAlt, FaSearch } from 'react-icons/fa'
+import sleekblueLogo from '@assets/SLEEKBLUE_LOGO_1779921080596.jpg'
 
 export default function Navbar() {
   return (
@@ -8,42 +9,18 @@ export default function Navbar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 24px',
+        padding: '8px 24px',
         maxWidth: '1280px',
         margin: '0 auto',
         gap: '16px',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            background: '#fff',
-            border: '2px solid #7B2FBE',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}>
-            <img
-              src="/logo.png"
-              alt="Sleekblue Logo"
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              onError={e => {
-                e.target.style.display = 'none'
-                e.target.parentNode.innerHTML = `
-                  <svg viewBox="0 0 48 48" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M24 4 L40 12 L40 28 C40 36 33 42 24 46 C15 42 8 36 8 28 L8 12 Z" fill="#7B2FBE"/>
-                    <text x="24" y="28" text-anchor="middle" fill="white" font-size="9" font-weight="bold" font-family="Arial">SB</text>
-                  </svg>`
-              }}
-            />
-          </div>
-          <div style={{ lineHeight: 1.2 }}>
-            <div style={{ fontWeight: 800, fontSize: '16px', color: '#1a1a2e', letterSpacing: '-0.3px' }}>Sleekblue<span style={{ color: '#7B2FBE' }}>®</span></div>
-            <div style={{ fontSize: '9px', fontWeight: 600, color: '#555', letterSpacing: '1.5px', textTransform: 'uppercase' }}>MEDIA HOUZ</div>
-          </div>
+        <div style={{ flexShrink: 0 }}>
+          <img
+            src={sleekblueLogo}
+            alt="Sleekblue Media Houz"
+            style={{ height: '52px', width: 'auto', objectFit: 'contain', display: 'block' }}
+          />
         </div>
 
         {/* Search bar */}
@@ -97,10 +74,7 @@ export default function Navbar() {
       </div>
 
       {/* Sub-nav */}
-      <div style={{
-        borderTop: '1px solid #eee',
-        background: '#fff',
-      }}>
+      <div style={{ borderTop: '1px solid #eee', background: '#fff' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',

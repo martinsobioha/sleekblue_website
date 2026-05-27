@@ -1,121 +1,85 @@
 import { FaStar } from 'react-icons/fa'
+import ubaLogo from '@assets/UBA_LOGO_1779921080597.jpg'
+import mtnLogo from '@assets/MTN_LOGO_1779921080594.jpg'
+import heroLogo from '@assets/HERO_LOGO_1779921080592.jpg'
+import imoDigitalLogo from '@assets/IMO_DIGITAL_CITY_LIMITED_LOGO_1779921080594.jpg'
+import seplatLogo from '@assets/SEPLAT_LOGO_1779921080595.jpg'
+
+const logos = [
+  { src: ubaLogo, alt: 'UBA' },
+  { src: mtnLogo, alt: 'MTN' },
+  { src: heroLogo, alt: 'HERO' },
+  { src: imoDigitalLogo, alt: 'Imo Digital City Limited' },
+  { src: seplatLogo, alt: 'Seplat Energy' },
+]
 
 export default function TrustBar() {
   return (
-    <section style={{ background: '#fff', padding: '28px 24px 24px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', textAlign: 'center' }}>
-        {/* Stars + Rating */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
+    <section style={{ background: '#fff', padding: '28px 0 24px', overflow: 'hidden' }}>
+      {/* Stars + Rating */}
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', gap: '3px' }}>
             {[1,2,3,4,5].map(i => <FaStar key={i} size={22} color="#F5A623" />)}
           </div>
           <span style={{ fontSize: '15px', fontWeight: 600, color: '#333' }}>5.0/5 based on 500+ reviews</span>
         </div>
-
-        {/* Trusted by */}
-        <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', color: '#888', marginBottom: '14px', textTransform: 'uppercase' }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', color: '#888', textTransform: 'uppercase' }}>
           TRUSTED BY GLOBAL BRANDS
         </p>
+      </div>
 
-        {/* Brand logos */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '36px',
-          flexWrap: 'wrap',
-        }}>
-          {/* UBA */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '32px', height: '32px',
-              background: '#E31E24',
-              borderRadius: '4px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+      {/* Animated marquee */}
+      <div style={{ overflow: 'hidden', position: 'relative', marginTop: '14px' }}>
+        <style>{`
+          @keyframes marquee {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .marquee-track {
+            display: flex;
+            align-items: center;
+            width: max-content;
+            animation: marquee 18s linear infinite;
+          }
+          .marquee-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        <div className="marquee-track">
+          {/* First set */}
+          {logos.map((logo, i) => (
+            <div key={`a-${i}`} style={{
+              padding: '0 48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}>
-              <span style={{ color: '#fff', fontSize: '10px', fontWeight: 900 }}>UBA</span>
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'grayscale(100%) opacity(0.7)' }}
+              />
             </div>
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#1a1a1a', letterSpacing: '-0.5px' }}>UBA</span>
-            <div style={{
-              width: '18px', height: '18px',
-              background: '#1a1a1a',
-              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-            }} />
-          </div>
-
-          {/* MTN */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{
-              width: '32px', height: '20px',
-              background: '#FFD700',
-              borderRadius: '4px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+          ))}
+          {/* Duplicate set for seamless loop */}
+          {logos.map((logo, i) => (
+            <div key={`b-${i}`} style={{
+              padding: '0 48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}>
-              <span style={{ color: '#000', fontSize: '8px', fontWeight: 900 }}>MTN</span>
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'grayscale(100%) opacity(0.7)' }}
+              />
             </div>
-            <span style={{ fontWeight: 800, fontSize: '16px', color: '#1a1a1a' }}>MTN</span>
-          </div>
-
-          {/* HERO */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{
-              width: '28px', height: '28px',
-              background: '#FF6B00',
-              borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#fff', fontSize: '7px', fontWeight: 900 }}>H</span>
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '16px', color: '#1a1a1a' }}>HERO</span>
-          </div>
-
-          {/* Imo Digital */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{
-              width: '28px', height: '28px',
-              background: '#003087',
-              borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#fff', fontSize: '6px', fontWeight: 900 }}>ID</span>
-            </div>
-            <div style={{ lineHeight: 1.1 }}>
-              <div style={{ fontWeight: 700, fontSize: '12px', color: '#1a1a1a' }}>Imo Digital</div>
-              <div style={{ fontSize: '10px', color: '#555' }}>City Limited <span style={{ fontSize: '9px', color: '#888' }}>(IDCL)</span></div>
-            </div>
-          </div>
-
-          {/* NNPC */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{
-              width: '28px', height: '28px',
-              background: '#00843D',
-              borderRadius: '4px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#fff', fontSize: '6px', fontWeight: 900 }}>NNPC</span>
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '15px', color: '#1a1a1a' }}>NNPC</span>
-          </div>
-
-          {/* Separator */}
-          <div style={{ width: '1px', height: '30px', background: '#ddd' }} />
-
-          {/* Seplat */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{
-              width: '28px', height: '28px',
-              background: '#005A9C',
-              borderRadius: '4px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: '#fff', fontSize: '6px', fontWeight: 900 }}>SP</span>
-            </div>
-            <div style={{ lineHeight: 1.1 }}>
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#1a1a1a' }}>Seplat</div>
-              <div style={{ fontSize: '10px', color: '#555' }}>Energy</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
