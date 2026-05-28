@@ -20,7 +20,7 @@ export default function ProductPage() {
 
   const sizes = product.sizes || ['Standard']
   const [selectedSize, setSelectedSize] = useState(sizes[0])
-  const [customQty, setCustomQty] = useState(isDieCut ? 500 : (product.priceTable[0]?.qty || 1))
+  const [customQty, setCustomQty] = useState(isDieCut ? 100 : (product.priceTable[0]?.qty || 1))
   const [selectedThumb, setSelectedThumb] = useState(0)
   const [added, setAdded] = useState(false)
 
@@ -171,12 +171,12 @@ export default function ProductPage() {
             <div style={{ background: '#fafafa', borderRadius: '10px', padding: '14px 16px', border: '1px solid #eee' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#333', fontFamily: "'HubotSans', sans-serif", whiteSpace: 'nowrap' }}>Custom Qty:</span>
-                <button onClick={() => setCustomQty(q => Math.max(isDieCut ? 500 : 1, q - (isDieCut ? 100 : 1)))}
+                <button onClick={() => setCustomQty(q => Math.max(1, q - (isDieCut ? 1 : 1)))}
                   style={{ width: '30px', height: '30px', borderRadius: '50%', border: '2px solid #7B2FBE', background: '#fff', color: '#7B2FBE', fontSize: '18px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                <input type="number" value={customQty} min={isDieCut ? 500 : 1}
-                  onChange={e => setCustomQty(Math.max(isDieCut ? 500 : 1, parseInt(e.target.value) || (isDieCut ? 500 : 1)))}
+                <input type="number" value={customQty} min={1}
+                  onChange={e => setCustomQty(Math.max(1, parseInt(e.target.value) || 1))}
                   style={{ width: '80px', padding: '6px 10px', border: '1.5px solid #ccc', borderRadius: '8px', fontSize: '13px', textAlign: 'center', fontFamily: "'HubotSans', sans-serif" }} />
-                <button onClick={() => setCustomQty(q => q + (isDieCut ? 100 : 1))}
+                <button onClick={() => setCustomQty(q => q + (isDieCut ? 1 : 1))}
                   style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#7B2FBE', color: '#fff', fontSize: '18px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                 <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
                   <p style={{ fontSize: '11px', color: '#888', margin: 0 }}>Total</p>
@@ -188,7 +188,7 @@ export default function ProductPage() {
               </div>
               {isDieCut && (
                 <p style={{ fontSize: '11px', color: '#999', marginTop: '8px', fontFamily: "'HubotSans', sans-serif" }}>
-                  Minimum order: 500 pcs · Increments of 100 · Note: Design fee ₦3,000 (first order)
+                  Note: Design fee ₦3,000 (first order) · Bulk discounts apply from 500 pcs
                 </p>
               )}
             </div>

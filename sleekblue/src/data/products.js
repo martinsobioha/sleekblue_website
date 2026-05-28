@@ -47,8 +47,10 @@ export function getStickerPriceTable(size) {
   const s = STICKER_SIZE_PRICES[size] || STICKER_SIZE_PRICES['3x3"']
   const unitAt100 = s.p100 / 100
   return [
-    { qty: 500,  label: '500',    total: s.p500,  unitPrice: s.p500 / 500,   discountRate: (unitAt100 - s.p500/500)  / unitAt100 },
-    { qty: 1000, label: '1,000',  total: s.p1000, unitPrice: s.p1000 / 1000, discountRate: (unitAt100 - s.p1000/1000)/ unitAt100 },
+    { qty: 100,  label: '100',    total: s.p100,        unitPrice: unitAt100,          discountRate: 0 },
+    { qty: 200,  label: '200',    total: unitAt100*200,  unitPrice: unitAt100,          discountRate: 0 },
+    { qty: 500,  label: '500',    total: s.p500,         unitPrice: s.p500/500,         discountRate: (unitAt100 - s.p500/500)  / unitAt100 },
+    { qty: 1000, label: '1,000',  total: s.p1000,        unitPrice: s.p1000/1000,       discountRate: (unitAt100 - s.p1000/1000)/ unitAt100 },
     { qty: 2000, label: '2,000',  ...calcStickerPrice(size, 2000) },
     { qty: 3000, label: '3,000+', ...calcStickerPrice(size, 3000) },
   ]
@@ -57,7 +59,7 @@ export function getStickerPriceTable(size) {
 const PRODUCT_DETAILS = {
   'die-cut-stickers': {
     description: 'Premium waterproof die-cut stickers cut to any shape. Ideal for product labelling, branding zobo, yoghurt, parfait, bottled drinks, and more.',
-    features: ['Waterproof & UV resistant', 'Strong permanent adhesive', 'Cut to any shape or design', 'High-resolution full-colour print', 'Easy to peel and apply', 'Minimum order: 500 pieces'],
+    features: ['Waterproof & UV resistant', 'Strong permanent adhesive', 'Cut to any shape or design', 'High-resolution full-colour print', 'Easy to peel and apply', 'Bulk discounts from 500 pcs'],
     badge: 'Most Popular',
     minQty: 500,
   },
