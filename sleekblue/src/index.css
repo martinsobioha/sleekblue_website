@@ -29,12 +29,18 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'HubotSans', 'Segoe UI', Arial, sans-serif;
   font-weight: 400;
   background: #fff;
   color: #222;
   font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -54,4 +60,66 @@ button {
 
 input, textarea, select {
   font-family: 'HubotSans', 'Segoe UI', Arial, sans-serif;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* ========== RESPONSIVE UTILITIES ========== */
+
+/* Store page grid */
+@media (max-width: 1100px) {
+  .store-grid-5 { grid-template-columns: repeat(4, 1fr) !important; }
+}
+@media (max-width: 860px) {
+  .store-grid-5 { grid-template-columns: repeat(3, 1fr) !important; }
+}
+@media (max-width: 600px) {
+  .store-grid-5 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 360px) {
+  .store-grid-5 { grid-template-columns: repeat(1, 1fr) !important; }
+}
+
+/* Hero image height on mobile */
+@media (max-width: 768px) {
+  section img[alt*="Slide"] {
+    max-height: 320px !important;
+    object-position: center !important;
+  }
+}
+
+/* Cart & checkout two-column → single column */
+@media (max-width: 768px) {
+  .cart-layout,
+  .checkout-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .cart-table-wrap {
+    overflow-x: auto;
+  }
+}
+
+/* Social sidebar on very small screens: hide to prevent overlap */
+@media (max-width: 360px) {
+  .social-sidebar { display: none !important; }
+}
+
+/* About page values grid */
+@media (max-width: 640px) {
+  .about-values-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .about-serve-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Typography scale down on mobile */
+@media (max-width: 480px) {
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+}
+
+/* Scrollable tables on mobile */
+@media (max-width: 600px) {
+  table { font-size: 12px !important; }
+  td, th { padding: 7px 8px !important; }
 }
