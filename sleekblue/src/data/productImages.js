@@ -59,6 +59,17 @@ import signageA      from '@assets/signage_a_1780612370863.jpg'
 import signageB      from '@assets/signage_b_1780612370863.jpg'
 import signageC      from '@assets/signage_c_1780612370864.jpg'
 import tableCalA     from '@assets/table_calender_a_1780612370864.jpg'
+import tableCalB     from '@assets/table_calender_b_1780612999006.jpg'
+import tableCalC     from '@assets/table_calender_c_1780612999006.jpg'
+import toteBagA      from '@assets/tote_bag_a_1780612999008.jpg'
+import toteBagB      from '@assets/tote_bag_b_1780612999009.jpg'
+import toteBagC      from '@assets/tote_bag_c_1780612999009.jpg'
+import vanBrand      from '@assets/WEBSITE_DESIGN_LAYOUT_2026_-_Copy_1780612999051.jpg'
+import winGraphA     from '@assets/window_graphics_a_1780612999051.jpg'
+import winGraphB     from '@assets/window_graphics_b_1780612999051.jpg'
+import winGraphC     from '@assets/window_graphics_c_1780612999052.jpg'
+import winGraphD     from '@assets/window_graphics_d_1780612999053.jpg'
+import winGraphE     from '@assets/window_graphics_e_1780612999054.jpg'
 import idCardB       from '@assets/I_D_card_b_1780611760300.jpg'
 import idCardC       from '@assets/I_D_card_c_1780611760301.jpg'
 import jotterA       from '@assets/jotter_a_1780611760301.jpg'
@@ -85,13 +96,13 @@ export const PRODUCT_IMAGES = {
   't-shirts':         [poloA, poloB, poloC],
   't-shirt-cap':      [poloB, poloC, poloD],
   'cap':              [capA, capB, capC],
-  'vehicle-branding': [carBrandB, carBrandC, carBrandD, carBrandE],
+  'vehicle-branding': [carBrandB, carBrandC, carBrandD, carBrandE, vanBrand],
   'brochure':         [brochureE, brochureB],
   'burial-brochure':  [brochureA, brochureC, brochureD, brochureF],
   'flyers-posters':   [posterA, posterB, posterC, posterE],
   'flyer':            [flyerA, flyerB, flyerC, flyerD, flyerE],
   'business-card':    [compCardA, compCardB, compCardC],
-  'table-calendar':   [tableCalA, calendarA, calendarB, calendarC],
+  'table-calendar':   [tableCalA, tableCalB, tableCalC, calendarA, calendarB, calendarC],
   'wall-calendar':    [calendarA, calendarB, calendarC],
   'hand-fan':         [handFanA, handFanB, handFanC],
   'id-cards':         [idCardA, idCardB, idCardC],
@@ -103,4 +114,6 @@ export const PRODUCT_IMAGES = {
   'paper-bag':        [paperBagA, paperBagB, paperBagC],
   'pen':              [penA, penB, penC],
   'signage':          [signageA, signageB, signageC],
+  'tote-bag':         [toteBagA, toteBagB, toteBagC],
+  'window-graphics':  [winGraphA, winGraphB, winGraphC, winGraphD, winGraphE],
 }
