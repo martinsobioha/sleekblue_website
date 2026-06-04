@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { ALL_PRODUCTS, getProductDetails, calcStickerPrice, getStickerPriceTable, STICKER_SIZE_PRICES } from '../data/products'
-import { PRODUCT_IMAGES } from '../data/productImages'
+import { PRODUCT_IMAGES, STICKER_SIZE_IMAGES } from '../data/productImages'
 
 const thumbColors = ['#C8C8C8', '#B0B0B0', '#D0D0D0']
 
@@ -57,8 +57,10 @@ export default function ProductPage() {
     ? findNearestSize(customWidth, customHeight)
     : selectedSize
 
-  // Product images
-  const productImgs = PRODUCT_IMAGES[product.slug] || []
+  // Product images — for die-cut stickers use per-size gallery, else standard
+  const productImgs = isDieCut
+    ? (STICKER_SIZE_IMAGES[effectiveSize] || [])
+    : (PRODUCT_IMAGES[product.slug] || [])
   const hasImages = productImgs.length > 0
   const displayImgs = hasImages ? productImgs : null
 
@@ -199,6 +201,7 @@ export default function ProductPage() {
                     <button
                       onClick={() => {
                         setSelectedSize(size)
+                        setSelectedThumb(0)
                         setCustomQty(isDieCut ? 100 : (product.priceTable[0]?.qty || 1))
                       }}
                       style={{

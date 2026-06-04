@@ -58,6 +58,20 @@ import rollUpC       from '@assets/roll_up_stand_c_1780612370862.jpg'
 import signageA      from '@assets/signage_a_1780612370863.jpg'
 import signageB      from '@assets/signage_b_1780612370863.jpg'
 import signageC      from '@assets/signage_c_1780612370864.jpg'
+import sticker2x4A   from '@assets/2X4_A_1780614732048.jpg'
+import sticker2x7A   from '@assets/2X7_A_1780614732049.jpg'
+import sticker2x7B   from '@assets/2X7_B_1780614732049.jpg'
+import sticker2x7C   from '@assets/2X7_C_1780614732050.jpg'
+import sticker2x8A   from '@assets/2X8_A_1780614732050.jpg'
+import sticker2x8B   from '@assets/2X8_B_1780614732051.jpg'
+import sticker3x3A   from '@assets/3x3_A_1780614732052.jpg'
+import sticker3x3B   from '@assets/3x3_B_1780614732052.jpg'
+import sticker3x3C   from '@assets/3x3_C_1780614732053.jpg'
+import sticker3x4A   from '@assets/3X4_A_1780614732056.jpg'
+import sticker3x4B   from '@assets/3X4_B_1780614732056.jpg'
+import umbrellaB     from '@assets/umbrella_b_1780614186226.jpg'
+import umbrellaC     from '@assets/umbrella_c_1780614186227.jpg'
+import umbrellaD     from '@assets/umbrella_d_1780614186228.jpg'
 import tableCalA     from '@assets/table_calender_a_1780612370864.jpg'
 import tableCalB     from '@assets/table_calender_b_1780612999006.jpg'
 import tableCalC     from '@assets/table_calender_c_1780612999006.jpg'
@@ -116,4 +130,12 @@ export const PRODUCT_IMAGES = {
   'signage':          [signageA, signageB, signageC],
   'tote-bag':         [toteBagA, toteBagB, toteBagC],
   'window-graphics':  [winGraphA, winGraphB, winGraphC, winGraphD, winGraphE],
+  'umbrella':         [umbrellaB, umbrellaC, umbrellaD],
+  'product-labels':   [sticker2x4A, sticker2x7A, sticker2x7B, sticker2x7C],
+}
+
+export const STICKER_SIZE_IMAGES = {
+  '3x3"':             [sticker3x3A, sticker3x3B, sticker3x3C],
+  '3x4"':             [sticker3x4A, sticker3x4B],
+  '2x8" Water Label': [sticker2x8A, sticker2x8B],
 }
