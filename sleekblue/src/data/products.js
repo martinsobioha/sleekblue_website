@@ -255,6 +255,12 @@ const PRODUCT_DETAILS = {
     badge: 'Expert Guidance',
     minQty: 1,
   },
+  'hand-fan': {
+    description: 'Custom printed hand fans for weddings, birthdays, church events, and corporate occasions. Printed double-sided with your design, photo, or logo on premium art card.',
+    features: ['Double-sided full-colour print', 'Round or square fan shape', 'Sturdy plastic handle', 'Premium art card material', 'Ideal for events & giveaways', 'MOQ 108 pcs'],
+    badge: 'Event Essential',
+    minQty: 108,
+  },
 }
 
 export const ALL_PRODUCTS = [
@@ -291,6 +297,7 @@ export const ALL_PRODUCTS = [
   { id: 29, name: 'Burial Brochure', category: 'Corporate Branding', slug: 'burial-brochure', price: 6000, priceTable: [{qty:50,unitPrice:120},{qty:100,unitPrice:100},{qty:500,unitPrice:80}], sizes: ['A5 Bi-fold','A4 Bi-fold','A5 Tri-fold'] },
   { id: 30, name: 'Flyers & Posters', category: 'Corporate Branding', slug: 'flyers-posters', price: 3500, priceTable: [{qty:100,unitPrice:35},{qty:500,unitPrice:30},{qty:1000,unitPrice:25}], sizes: ['A4','A3','A2','A5'] },
   { id: 32, name: 'T-Shirt & Cap Branding', category: 'Corporate Branding', slug: 't-shirt-cap', price: 5000, priceTable: [{qty:10,unitPrice:500},{qty:50,unitPrice:450},{qty:100,unitPrice:400}], sizes: ['S','M','L','XL','2XL'] },
+  { id: 34, name: 'Hand Fan', category: 'Corporate Branding', slug: 'hand-fan', price: 113400, priceTable: [{qty:108,unitPrice:1050}], sizes: ['Round Shape','Square Shape','Customized Shape'] },
 ]
 
 export function getProductDetails(slug) {
@@ -354,5 +361,6 @@ export const NAV_MENUS = {
     { name: 'Burial Brochure', slug: 'burial-brochure' },
     { name: 'Flyers & Posters', slug: 'flyers-posters' },
     { name: 'T-Shirt & Cap Branding', slug: 't-shirt-cap' },
+    { name: 'Hand Fan', slug: 'hand-fan' },
   ],
 }
