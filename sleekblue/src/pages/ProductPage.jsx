@@ -158,22 +158,27 @@ export default function ProductPage() {
             </div>
 
             {/* Thumbnails */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {displayImgs ? (
-                displayImgs.slice(0, 3).map((img, i) => (
-                  <div key={i} onClick={() => setSelectedThumb(i)}
-                    style={{ flex: 1, aspectRatio: '1', borderRadius: '6px', border: selectedThumb === i ? '2.5px solid #7B2FBE' : '1px solid #ddd', cursor: 'pointer', overflow: 'hidden', background: '#ddd' }}>
-                    <img src={img} alt={`View ${i + 1}`} loading="lazy" decoding="async"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  </div>
-                ))
-              ) : (
-                thumbColors.map((color, i) => (
+            {displayImgs ? (
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
+                {displayImgs.map((img, i) => {
+                  const thumbSize = displayImgs.length > 4 ? '44px' : displayImgs.length > 3 ? '52px' : '70px'
+                  return (
+                    <div key={i} onClick={() => setSelectedThumb(i)}
+                      style={{ width: thumbSize, height: thumbSize, borderRadius: '6px', border: selectedThumb === i ? '2.5px solid #7B2FBE' : '1.5px solid #ddd', cursor: 'pointer', overflow: 'hidden', background: '#ddd', flexShrink: 0 }}>
+                      <img src={img} alt={`View ${i + 1}`} loading="lazy" decoding="async"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {thumbColors.map((color, i) => (
                   <div key={i} onClick={() => setSelectedThumb(i)}
                     style={{ flex: 1, aspectRatio: '1', background: color, borderRadius: '6px', border: selectedThumb === i ? '2.5px solid #7B2FBE' : '1px solid #ddd', cursor: 'pointer' }} />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* CENTER — details & pricing */}
