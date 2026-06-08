@@ -2,44 +2,168 @@ import express from 'express'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const LOG_FILE = join(__dirname, 'acceptance-log.json')
+
+const LOG_FILE        = join(__dirname, 'acceptance-log.json')
+const SITE_DATA_FILE  = join(__dirname, 'site-data.json')
+const ADMIN_CFG_FILE  = join(__dirname, 'admin-config.json')
+
+const JWT_SECRET = process.env.JWT_SECRET || 'sbm_admin_jwt_secret_2026'
+const PORT       = process.env.TERMS_PORT || 3001
+
+function readJSON(file, fallback = {}) {
+  if (!existsSync(file)) return fallback
+  try { return JSON.parse(readFileSync(file, 'utf-8')) } catch { return fallback }
+}
+function writeJSON(file, data) {
+  writeFileSync(file, JSON.stringify(data, null, 2))
+}
+function generateId(prefix = 'SBM') {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7).toUpperCase()}`
+}
+
+if (!existsSync(ADMIN_CFG_FILE)) {
+  writeJSON(ADMIN_CFG_FILE, {
+    username: 'admin',
+    passwordHash: bcrypt.hashSync('Sleekblue2026!', 10),
+  })
+  console.log('[Admin] Default credentials: admin / Sleekblue2026!')
+}
 
 const app = express()
 app.use(express.json())
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  if (req.method === 'OPTIONS') return res.sendStatus(200)
+  next()
+})
 
-function readLog() {
-  if (!existsSync(LOG_FILE)) return []
-  try { return JSON.parse(readFileSync(LOG_FILE, 'utf-8')) } catch { return [] }
+function requireAuth(req, res, next) {
+  const auth = req.headers.authorization || ''
+  const token = auth.replace('Bearer ', '')
+  if (!token) return res.status(401).json({ error: 'No token' })
+  try {
+    req.admin = jwt.verify(token, JWT_SECRET)
+    next()
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
 }
 
-function generateId() {
-  return 'SBM-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase()
-}
-
+// ── Public: Terms acceptance ──────────────────────────────────────────
 app.post('/api/accept-terms', (req, res) => {
-  const records = readLog()
+  const records = readJSON(LOG_FILE, [])
   const record = {
     acceptanceId: generateId(),
-    timestamp: new Date().toISOString(),
+    timestamp:    new Date().toISOString(),
     termsVersion: req.body.termsVersion || 'June 2026',
     customerName: req.body.customerName || '',
-    email: req.body.email || '',
-    phone: req.body.phone || '',
-    ipAddress: (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim(),
-    userAgent: req.headers['user-agent'] || '',
+    email:        req.body.email        || '',
+    phone:        req.body.phone        || '',
+    ipAddress:    (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim(),
+    userAgent:    req.headers['user-agent'] || '',
   }
   records.push(record)
-  writeFileSync(LOG_FILE, JSON.stringify(records, null, 2))
-  console.log('[Terms] Acceptance recorded:', record.acceptanceId, '|', record.customerName, '|', record.timestamp)
+  writeJSON(LOG_FILE, records)
+  console.log('[Terms] Accepted:', record.acceptanceId, '|', record.customerName)
   res.json({ ok: true, acceptanceId: record.acceptanceId })
 })
 
-app.get('/api/acceptance-log', (req, res) => {
-  res.json(readLog())
+// ── Public: Settings ─────────────────────────────────────────────────
+app.get('/api/settings', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.settings || {})
 })
 
-const PORT = process.env.TERMS_PORT || 3001
-app.listen(PORT, () => console.log(`Terms acceptance server running on port ${PORT}`))
+// ── Public: Products with overrides applied ───────────────────────────
+app.get('/api/products', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json({
+    productOverrides: data.productOverrides || {},
+    stickerPriceOverrides: data.stickerPriceOverrides || {},
+  })
+})
+
+app.get('/api/products/:slug', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  const override = (data.productOverrides || {})[req.params.slug]
+  res.json(override || null)
+})
+
+// ── Admin: Login ──────────────────────────────────────────────────────
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body
+  const cfg = readJSON(ADMIN_CFG_FILE, {})
+  if (username !== cfg.username) return res.status(401).json({ error: 'Invalid credentials' })
+  if (!bcrypt.compareSync(password, cfg.passwordHash)) return res.status(401).json({ error: 'Invalid credentials' })
+  const token = jwt.sign({ username, role: 'admin' }, JWT_SECRET, { expiresIn: '8h' })
+  console.log('[Admin] Login:', username)
+  res.json({ ok: true, token })
+})
+
+// ── Admin: Acceptances ────────────────────────────────────────────────
+app.get('/api/admin/acceptances', requireAuth, (req, res) => {
+  res.json(readJSON(LOG_FILE, []))
+})
+
+// ── Admin: Products CRUD ──────────────────────────────────────────────
+app.get('/api/admin/site-data', requireAuth, (req, res) => {
+  res.json(readJSON(SITE_DATA_FILE, {}))
+})
+
+app.put('/api/admin/products/:slug', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {} })
+  data.productOverrides = data.productOverrides || {}
+  data.productOverrides[req.params.slug] = req.body
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Product saved:', req.params.slug)
+  res.json({ ok: true })
+})
+
+app.delete('/api/admin/products/:slug', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {} })
+  data.productOverrides = data.productOverrides || {}
+  delete data.productOverrides[req.params.slug]
+  writeJSON(SITE_DATA_FILE, data)
+  res.json({ ok: true })
+})
+
+// ── Admin: Sticker prices ─────────────────────────────────────────────
+app.put('/api/admin/sticker-prices', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {} })
+  data.stickerPriceOverrides = req.body
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Sticker prices updated')
+  res.json({ ok: true })
+})
+
+// ── Admin: Settings ───────────────────────────────────────────────────
+app.put('/api/admin/settings', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {} })
+  data.settings = { ...(data.settings || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Settings updated')
+  res.json({ ok: true })
+})
+
+// ── Admin: Change password ─────────────────────────────────────────────
+app.put('/api/admin/password', requireAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body
+  const cfg = readJSON(ADMIN_CFG_FILE, {})
+  if (!bcrypt.compareSync(currentPassword, cfg.passwordHash))
+    return res.status(400).json({ error: 'Current password is incorrect' })
+  if (!newPassword || newPassword.length < 6)
+    return res.status(400).json({ error: 'New password must be at least 6 characters' })
+  cfg.passwordHash = bcrypt.hashSync(newPassword, 10)
+  writeJSON(ADMIN_CFG_FILE, cfg)
+  console.log('[Admin] Password changed')
+  res.json({ ok: true })
+})
+
+app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))

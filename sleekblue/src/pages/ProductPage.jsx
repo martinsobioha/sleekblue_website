@@ -31,9 +31,23 @@ export default function ProductPage() {
   const navigate = useNavigate()
   const { addToCart } = useCart()
 
-  const product = ALL_PRODUCTS.find(p => p.slug === slug) || ALL_PRODUCTS[7]
-  const details = getProductDetails(product.slug)
-  const isDieCut = !!product.isDieCut
+  const baseProduct = ALL_PRODUCTS.find(p => p.slug === slug) || ALL_PRODUCTS[7]
+  const baseDetails = getProductDetails(baseProduct.slug)
+
+  // Admin overrides — fetched from server, applied on top of static data
+  const [adminOverride, setAdminOverride] = useState(null)
+  useEffect(() => {
+    fetch(`/api/products/${baseProduct.slug}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setAdminOverride(data) })
+      .catch(() => {})
+  }, [baseProduct.slug])
+
+  const product = adminOverride ? { ...baseProduct, ...adminOverride } : baseProduct
+  const details = adminOverride
+    ? { ...baseDetails, ...(adminOverride.description ? { description: adminOverride.description } : {}), ...(adminOverride.features ? { features: adminOverride.features } : {}), ...(adminOverride.badge ? { badge: adminOverride.badge } : {}) }
+    : baseDetails
+  const isDieCut = !!baseProduct.isDieCut
 
   const sizes = product.sizes || ['Standard']
   const [selectedSize, setSelectedSize] = useState(sizes[0])
@@ -50,6 +64,7 @@ export default function ProductPage() {
     setSelectedThumb(0)
     setSelectedSize(sizes[0])
     setCustomQty(isDieCut ? 100 : (product.priceTable[0]?.qty || 1))
+    setAdminOverride(null)
   }, [slug])
 
   // For die-cut with Custom size, resolve to nearest standard for pricing

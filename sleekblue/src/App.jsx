@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import SocialSidebar from './components/SocialSidebar'
@@ -16,6 +16,7 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
 const QuotePage    = lazy(() => import('./pages/QuotePage'))
 const AboutPage    = lazy(() => import('./pages/AboutPage'))
 const BlogPage     = lazy(() => import('./pages/BlogPage'))
+const AdminPage    = lazy(() => import('./pages/AdminPage'))
 
 function PageLoader() {
   return (
@@ -26,30 +27,41 @@ function PageLoader() {
   )
 }
 
+function MainSite() {
+  return (
+    <CartProvider>
+      <TermsModal />
+      <Navbar />
+      <SocialSidebar />
+      <main>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"            element={<HomePage />} />
+            <Route path="/store"       element={<StorePage />} />
+            <Route path="/store/:slug" element={<ProductPage />} />
+            <Route path="/cart"        element={<CartPage />} />
+            <Route path="/checkout"    element={<CheckoutPage />} />
+            <Route path="/quote"       element={<QuotePage />} />
+            <Route path="/about"       element={<AboutPage />} />
+            <Route path="/blog"        element={<BlogPage />} />
+          </Routes>
+        </Suspense>
+      </main>
+      <WhatsAppFloat />
+      <ChatWidget />
+    </CartProvider>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <TermsModal />
-        <Navbar />
-        <SocialSidebar />
-        <main>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/"          element={<HomePage />} />
-              <Route path="/store"     element={<StorePage />} />
-              <Route path="/store/:slug" element={<ProductPage />} />
-              <Route path="/cart"      element={<CartPage />} />
-              <Route path="/checkout"  element={<CheckoutPage />} />
-              <Route path="/quote"     element={<QuotePage />} />
-              <Route path="/about"     element={<AboutPage />} />
-              <Route path="/blog"      element={<BlogPage />} />
-            </Routes>
-          </Suspense>
-        </main>
-        <WhatsAppFloat />
-        <ChatWidget />
-      </CartProvider>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/*"     element={<MainSite />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }
