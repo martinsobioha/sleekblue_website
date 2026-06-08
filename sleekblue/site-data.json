@@ -10,6 +10,34 @@
     "email": "info@sleekbluemediahouz.com",
     "address": "Lagos, Nigeria"
   },
-  "productOverrides": {},
+  "productOverrides": {
+    "signage": {
+      "name": "Signage & Billboard",
+      "category": "Flex Printing/Large Format",
+      "badge": "Permanent Signage",
+      "description": "Custom signage and billboards for shops, offices, highways, and institutions. Durable, large-format, professional finish.",
+      "features": [
+        "Aluminium composite or flex",
+        "Any custom size",
+        "Weather-resistant",
+        "High-resolution print",
+        "Mounting hardware options",
+        "Professional installation guidance"
+      ],
+      "priceTable": [
+        {
+          "qty": 1,
+          "unitPrice": 70000
+        },
+        {
+          "qty": 3,
+          "unitPrice": 65000
+        }
+      ],
+      "sizes": [
+        "Custom"
+      ]
+    }
+  },
   "stickerPriceOverrides": {}
 }
