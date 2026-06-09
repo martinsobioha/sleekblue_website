@@ -88,7 +88,7 @@ function LoginScreen({ onLogin }) {
           <p style={{ fontSize: '13px', color: '#888', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>Sign in to manage your website</p>
         </div>
         <form onSubmit={handleLogin}>
-          <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin" />
+          <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} placeholder="Enter username" />
           <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" />
           {error && <p style={{ color: '#dc2626', fontSize: '13px', marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>{error}</p>}
           <Btn onClick={handleLogin} disabled={loading} style={{ width: '100%', padding: '12px' }}>
@@ -103,10 +103,197 @@ function LoginScreen({ onLogin }) {
   )
 }
 
+// ─── Page Editor ──────────────────────────────────────────────────────────────
+function PageEditorView({ token }) {
+  const DEFAULT_LAYOUT = [
+    { id: 'hero',        label: 'Hero Banner',       icon: '🖼️',  visible: true, description: 'The main slideshow at the top of the homepage' },
+    { id: 'trustBar',    label: 'Trust Bar',          icon: '⭐',  visible: true, description: 'Star rating and partner logos strip' },
+    { id: 'bestSelling', label: 'Best Selling',       icon: '🛍️', visible: true, description: 'Product grid showcasing your best sellers' },
+    { id: 'reviews',     label: 'Customer Reviews',   icon: '💬', visible: true, description: 'Testimonials and ratings from customers' },
+  ]
+  const [layout, setLayout] = useState(DEFAULT_LAYOUT)
+  const [dragging, setDragging] = useState(null)
+  const [dragOver, setDragOver] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [heroData, setHeroData] = useState({ headline: '', subheadline: '', btn1: '', btn2: '' })
+  const [heroSaving, setHeroSaving] = useState(false)
+  const [heroSaved, setHeroSaved] = useState(false)
+  const [activeTab, setActiveTab] = useState('layout')
+
+  useEffect(() => {
+    fetch('/api/page-layout')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d) && d.length) setLayout(d.map(s => ({ ...DEFAULT_LAYOUT.find(x => x.id === s.id), ...s }))) })
+      .catch(() => {})
+    fetch('/api/hero')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setHeroData({ headline: d.headline || '', subheadline: d.subheadline || '', btn1: d.btn1 || '', btn2: d.btn2 || '' }) })
+      .catch(() => {})
+  }, [])
+
+  function toggleVisible(id) {
+    setLayout(l => l.map(s => s.id === id ? { ...s, visible: !s.visible } : s))
+  }
+
+  function onDragStart(e, idx) {
+    setDragging(idx)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+  function onDragOver(e, idx) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(idx)
+  }
+  function onDrop(e, idx) {
+    e.preventDefault()
+    if (dragging === null || dragging === idx) { setDragging(null); setDragOver(null); return }
+    const next = [...layout]
+    const [moved] = next.splice(dragging, 1)
+    next.splice(idx, 0, moved)
+    setLayout(next)
+    setDragging(null)
+    setDragOver(null)
+  }
+  function onDragEnd() { setDragging(null); setDragOver(null) }
+
+  function moveSection(idx, dir) {
+    const next = [...layout]
+    const j = idx + dir
+    if (j < 0 || j >= next.length) return
+    ;[next[idx], next[j]] = [next[j], next[idx]]
+    setLayout(next)
+  }
+
+  async function saveLayout() {
+    setSaving(true); setSaved(false)
+    await fetch('/api/admin/page-layout', {
+      method: 'PUT', headers: authH(token),
+      body: JSON.stringify(layout.map(({ id, visible }) => ({ id, visible }))),
+    })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
+  }
+
+  async function saveHero() {
+    setHeroSaving(true); setHeroSaved(false)
+    await fetch('/api/admin/hero', { method: 'PUT', headers: authH(token), body: JSON.stringify(heroData) })
+    setHeroSaving(false); setHeroSaved(true); setTimeout(() => setHeroSaved(false), 3000)
+  }
+
+  const tabs = [
+    { id: 'layout', label: '⠿ Section Order & Visibility' },
+    { id: 'hero',   label: '🖼️ Hero Banner Text' },
+  ]
+
+  return (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>Page Editor</h2>
+        <p style={{ color: '#888', fontSize: '13px', margin: '0 0 16px', fontFamily: "'HubotSans',sans-serif" }}>Drag and drop sections to reorder the homepage, or toggle them on/off.</p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              style={{ padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? PRI : '#fff', color: activeTab === t.id ? '#fff' : '#555', fontWeight: activeTab === t.id ? 700 : 500, fontSize: '13px', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', fontFamily: "'HubotSans',sans-serif", transition: 'all 0.15s' }}>
+              {t.label}
+            </button>
+          ))}
+          <a href="/" target="_blank" rel="noopener noreferrer"
+            style={{ marginLeft: 'auto', padding: '9px 18px', borderRadius: '8px', background: '#fff', border: '1.5px solid #ddd', color: '#555', fontSize: '13px', fontWeight: 600, fontFamily: "'HubotSans',sans-serif", textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            👁️ Preview Site
+          </a>
+        </div>
+      </div>
+
+      {activeTab === 'layout' && (
+        <div>
+          <Card style={{ marginBottom: '16px', padding: '16px 20px' }}>
+            <p style={{ fontSize: '12.5px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>
+              💡 <strong>Drag</strong> the cards below to reorder homepage sections. <strong>Toggle</strong> the switch to show or hide each section. Click <strong>Save Layout</strong> when done.
+            </p>
+          </Card>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {layout.map((section, idx) => {
+              const isDraggingThis = dragging === idx
+              const isOver = dragOver === idx
+              return (
+                <div key={section.id}
+                  draggable
+                  onDragStart={e => onDragStart(e, idx)}
+                  onDragOver={e => onDragOver(e, idx)}
+                  onDrop={e => onDrop(e, idx)}
+                  onDragEnd={onDragEnd}
+                  style={{
+                    background: isDraggingThis ? '#f0e8ff' : isOver ? '#e8f0ff' : '#fff',
+                    border: `2px solid ${isOver ? PRI : isDraggingThis ? PRI + '88' : '#eee'}`,
+                    borderRadius: '12px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    cursor: 'grab',
+                    transition: 'all 0.15s',
+                    opacity: isDraggingThis ? 0.5 : 1,
+                    boxShadow: isOver ? `0 0 0 3px ${PRI}22` : '0 1px 4px rgba(0,0,0,0.06)',
+                    userSelect: 'none',
+                  }}>
+                  <span style={{ fontSize: '22px', color: '#bbb', cursor: 'grab', flexShrink: 0 }}>⠿</span>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: PRI_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{section.icon}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '14px', color: '#1a1a1a', fontFamily: "'HubotSans',sans-serif" }}>{section.label}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#888', fontFamily: "'HubotSans',sans-serif" }}>{section.description}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <button onClick={() => moveSection(idx, -1)} disabled={idx === 0}
+                      style={{ background: PRI_LIGHT, border: 'none', borderRadius: '6px', padding: '5px 10px', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: PRI, fontSize: '13px', opacity: idx === 0 ? 0.4 : 1 }}>▲</button>
+                    <button onClick={() => moveSection(idx, 1)} disabled={idx === layout.length - 1}
+                      style={{ background: PRI_LIGHT, border: 'none', borderRadius: '6px', padding: '5px 10px', cursor: idx === layout.length - 1 ? 'not-allowed' : 'pointer', color: PRI, fontSize: '13px', opacity: idx === layout.length - 1 ? 0.4 : 1 }}>▼</button>
+                    <div onClick={() => toggleVisible(section.id)}
+                      style={{ position: 'relative', width: '44px', height: '24px', cursor: 'pointer', flexShrink: 0 }}>
+                      <div style={{ position: 'absolute', inset: 0, borderRadius: '12px', background: section.visible ? '#16a34a' : '#ccc', transition: 'background 0.2s' }} />
+                      <div style={{ position: 'absolute', top: '4px', left: section.visible ? '23px' : '4px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: section.visible ? '#16a34a' : '#aaa', fontFamily: "'HubotSans',sans-serif", width: '42px' }}>
+                      {section.visible ? 'Visible' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <Btn onClick={saveLayout} disabled={saving}>{saving ? 'Saving…' : '💾 Save Layout'}</Btn>
+            {saved && <span style={{ color: '#16a34a', fontSize: '13px', fontWeight: 600 }}>✓ Layout saved! Refresh the site to see changes.</span>}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'hero' && (
+        <Card>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '6px', fontFamily: "'HubotSans',sans-serif" }}>Hero Banner Text Overlay</h3>
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>
+            These texts will appear overlaid on the hero slideshow. Leave blank to use the default image-baked text.
+          </p>
+          <Input label="Main Headline" value={heroData.headline} onChange={e => setHeroData(d => ({ ...d, headline: e.target.value }))} placeholder="e.g. Premium Print. Zero Stress." />
+          <Input label="Sub-headline" value={heroData.subheadline} onChange={e => setHeroData(d => ({ ...d, subheadline: e.target.value }))} placeholder="e.g. Die-cut stickers, Flex printing, Corporate branding…" rows={2} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Input label="Button 1 Label" value={heroData.btn1} onChange={e => setHeroData(d => ({ ...d, btn1: e.target.value }))} placeholder="Print Sticker" />
+            <Input label="Button 2 Label" value={heroData.btn2} onChange={e => setHeroData(d => ({ ...d, btn2: e.target.value }))} placeholder="Print Flex" />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '8px' }}>
+            <Btn onClick={saveHero} disabled={heroSaving}>{heroSaving ? 'Saving…' : '💾 Save Hero Text'}</Btn>
+            {heroSaved && <span style={{ color: '#16a34a', fontSize: '13px', fontWeight: 600 }}>✓ Saved! Refresh the site to see changes.</span>}
+          </div>
+        </Card>
+      )}
+    </div>
+  )
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ view, setView, counts, onLogout }) {
   const items = [
     { id: 'dashboard',      icon: '📊', label: 'Dashboard' },
+    { id: 'page-editor',    icon: '🧩', label: 'Page Editor' },
     { id: 'products',       icon: '🛍️', label: 'Products',  badge: counts.products },
     { id: 'sticker-prices', icon: '🏷️', label: 'Sticker Prices' },
     { id: 'content',        icon: '🎨', label: 'Content CMS' },
@@ -1150,6 +1337,7 @@ export default function AdminPage() {
         {!loading && (
           <>
             {view === 'dashboard'      && <DashboardView siteData={siteData} />}
+            {view === 'page-editor'    && <PageEditorView token={token} />}
             {view === 'products'       && <ProductsView token={token} productOverrides={siteData.productOverrides} onDataChanged={fetchAll} />}
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
             {view === 'content'        && <ContentView token={token} content={siteData.content} onDataChanged={fetchAll} />}

@@ -238,4 +238,40 @@ app.put('/api/admin/content', requireAuth, (req, res) => {
   res.json({ ok: true })
 })
 
+// ── Public: Page layout ───────────────────────────────────────────────────────
+const DEFAULT_PAGE_LAYOUT = [
+  { id: 'hero',        label: 'Hero Banner',    icon: '🖼️',  visible: true },
+  { id: 'trustBar',    label: 'Trust Bar',      icon: '⭐',  visible: true },
+  { id: 'bestSelling', label: 'Best Selling',   icon: '🛍️', visible: true },
+  { id: 'reviews',     label: 'Customer Reviews', icon: '💬', visible: true },
+]
+
+app.get('/api/page-layout', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.pageLayout || DEFAULT_PAGE_LAYOUT)
+})
+
+// ── Admin: Page layout ────────────────────────────────────────────────────────
+app.put('/api/admin/page-layout', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {}, content: {} })
+  data.pageLayout = req.body
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Page layout updated')
+  res.json({ ok: true })
+})
+
+// ── Admin: Hero content ───────────────────────────────────────────────────────
+app.get('/api/hero', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.hero || {})
+})
+
+app.put('/api/admin/hero', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {}, content: {} })
+  data.hero = { ...(data.hero || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Hero content updated')
+  res.json({ ok: true })
+})
+
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))
