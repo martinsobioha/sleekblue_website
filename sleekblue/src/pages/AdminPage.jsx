@@ -96,7 +96,7 @@ function LoginScreen({ onLogin }) {
           </Btn>
         </form>
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#bbb', marginTop: '16px', fontFamily: "'HubotSans',sans-serif" }}>
-          Default: admin / Sleekblue2026!
+          Sleekblue Media Houz — Admin Access
         </p>
       </div>
     </div>
@@ -109,6 +109,7 @@ function Sidebar({ view, setView, counts, onLogout }) {
     { id: 'dashboard',      icon: '📊', label: 'Dashboard' },
     { id: 'products',       icon: '🛍️', label: 'Products',  badge: counts.products },
     { id: 'sticker-prices', icon: '🏷️', label: 'Sticker Prices' },
+    { id: 'content',        icon: '🎨', label: 'Content CMS' },
     { id: 'settings',       icon: '⚙️', label: 'Site Settings' },
     { id: 'acceptances',    icon: '📋', label: 'T&C Acceptances', badge: counts.acceptances },
     { id: 'security',       icon: '🔑', label: 'Security' },
@@ -214,6 +215,13 @@ function ProductEditor({ token, slug, baseProduct, override, onSaved, onCancel }
   const [features, setFeatures]     = useState(merged.features ? [...merged.features] : [])
   const [priceTable, setPriceTable] = useState(merged.priceTable ? JSON.parse(JSON.stringify(merged.priceTable)) : [])
   const [sizes, setSizes]           = useState(merged.sizes ? [...merged.sizes] : [])
+  const [useVariantPricing, setUseVariantPricing] = useState(!!merged.variantPrices)
+  const [variantPrices, setVariantPrices] = useState(() => {
+    if (merged.variantPrices) return JSON.parse(JSON.stringify(merged.variantPrices))
+    const vp = {}
+    ;(merged.sizes || []).filter(Boolean).forEach(s => { vp[s] = JSON.parse(JSON.stringify(merged.priceTable || [])) })
+    return vp
+  })
   const [saving, setSaving]         = useState(false)
   const [saved, setSaved]           = useState(false)
 
@@ -233,9 +241,26 @@ function ProductEditor({ token, slug, baseProduct, override, onSaved, onCancel }
   function removeRow(i) { setPriceTable(priceTable.filter((_, idx) => idx !== i)) }
   function addRow()     { setPriceTable([...priceTable, { qty: 100, unitPrice: 0 }]) }
 
+  function updateVRow(size, i, field, val) {
+    setVariantPrices(prev => ({ ...prev, [size]: prev[size].map((r, idx) => idx === i ? { ...r, [field]: parseFloat(val) || 0 } : r) }))
+  }
+  function removeVRow(size, i) {
+    setVariantPrices(prev => ({ ...prev, [size]: prev[size].filter((_, idx) => idx !== i) }))
+  }
+  function addVRow(size) {
+    setVariantPrices(prev => ({ ...prev, [size]: [...(prev[size] || []), { qty: 100, unitPrice: 0 }] }))
+  }
+  function syncVariantSizes(newSizes) {
+    setVariantPrices(prev => {
+      const vp = { ...prev }
+      newSizes.filter(Boolean).forEach(s => { if (!vp[s]) vp[s] = JSON.parse(JSON.stringify(priceTable)) })
+      return vp
+    })
+  }
+
   async function handleSave() {
     setSaving(true); setSaved(false)
-    const payload = { name, category, badge, description, features, priceTable, sizes }
+    const payload = { name, category, badge, description, features, priceTable, sizes, variantPrices: useVariantPricing ? variantPrices : null }
     await fetch(`/api/admin/products/${slug}`, {
       method: 'PUT', headers: authH(token), body: JSON.stringify(payload),
     })
@@ -340,6 +365,67 @@ function ProductEditor({ token, slug, baseProduct, override, onSaved, onCancel }
             <p style={{ fontSize: '12.5px', color: '#888', fontFamily: "'HubotSans',sans-serif" }}>
               Sticker prices are managed in the <strong style={{ color: PRI }}>Sticker Prices</strong> section. Click it in the sidebar to edit the full price matrix.
             </p>
+          </Card>
+        )}
+
+        {!isDieCut && sizes.filter(Boolean).length > 1 && (
+          <Card style={{ gridColumn: '1 / -1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: '0 0 3px', fontFamily: "'HubotSans',sans-serif" }}>Per-Variant Pricing</h3>
+                <p style={{ fontSize: '12px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Set a different price table for each size/type variant</p>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#333', fontFamily: "'HubotSans',sans-serif" }}>
+                <div style={{ position: 'relative', width: '40px', height: '22px' }}>
+                  <input type="checkbox" checked={useVariantPricing} onChange={e => { setUseVariantPricing(e.target.checked); if (e.target.checked) syncVariantSizes(sizes) }} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '11px', background: useVariantPricing ? PRI : '#ccc', cursor: 'pointer', transition: 'background 0.2s' }}
+                    onClick={() => { const v = !useVariantPricing; setUseVariantPricing(v); if (v) syncVariantSizes(sizes) }} />
+                  <div style={{ position: 'absolute', top: '3px', left: useVariantPricing ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', pointerEvents: 'none' }} />
+                </div>
+                {useVariantPricing ? 'Enabled' : 'Disabled'}
+              </label>
+            </div>
+            {!useVariantPricing && (
+              <p style={{ fontSize: '12.5px', color: '#aaa', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>Currently using the shared Price Table above for all sizes. Toggle on to set individual prices per size.</p>
+            )}
+            {useVariantPricing && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '8px' }}>
+                {sizes.filter(Boolean).map(size => (
+                  <div key={size} style={{ border: `1.5px solid ${PRI}40`, borderRadius: '10px', padding: '14px', background: PRI_LIGHT + '40' }}>
+                    <h4 style={{ color: PRI, margin: '0 0 10px', fontSize: '13px', fontWeight: 700, fontFamily: "'HubotSans',sans-serif" }}>📐 {size}</h4>
+                    <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ background: '#f0e8ff' }}>
+                          <th style={{ padding: '5px 8px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif" }}>Qty</th>
+                          <th style={{ padding: '5px 8px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif" }}>Unit ₦</th>
+                          <th style={{ padding: '5px 8px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif" }}>Total</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(variantPrices[size] || []).map((row, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid #e8dfff' }}>
+                            <td style={{ padding: '4px 6px' }}>
+                              <input type="number" value={row.qty} onChange={e => updateVRow(size, i, 'qty', e.target.value)}
+                                style={{ width: '68px', padding: '4px 6px', border: '1.5px solid #ddd', borderRadius: '5px', fontSize: '12px', textAlign: 'center' }} />
+                            </td>
+                            <td style={{ padding: '4px 6px' }}>
+                              <input type="number" value={row.unitPrice} onChange={e => updateVRow(size, i, 'unitPrice', e.target.value)}
+                                style={{ width: '84px', padding: '4px 6px', border: '1.5px solid #ddd', borderRadius: '5px', fontSize: '12px', textAlign: 'center' }} />
+                            </td>
+                            <td style={{ padding: '4px 6px', color: PRI, fontWeight: 700, fontFamily: "'HubotSans',sans-serif", whiteSpace: 'nowrap' }}>{fmt(row.qty * row.unitPrice)}</td>
+                            <td style={{ padding: '4px 6px' }}>
+                              <button onClick={() => removeVRow(size, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <button onClick={() => addVRow(size)} style={{ marginTop: '8px', background: PRI_LIGHT, border: `1px solid ${PRI}40`, borderRadius: '6px', padding: '5px 12px', cursor: 'pointer', color: PRI, fontSize: '12px', fontWeight: 600, fontFamily: "'HubotSans',sans-serif" }}>+ Add Row</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         )}
       </div>
@@ -714,29 +800,323 @@ function SecurityView({ token }) {
   )
 }
 
+// ─── Content CMS ──────────────────────────────────────────────────────────────
+function TrustBarEditor({ token, data, onDataChanged }) {
+  const def = { rating: '5.0/5', reviewCount: '500+', tagline: 'TRUSTED BY GLOBAL BRANDS', partners: [
+    { key: 'UBA', name: 'UBA', visible: true }, { key: 'MTN', name: 'MTN', visible: true },
+    { key: 'HERO', name: 'HERO', visible: true }, { key: 'IMO_DIGITAL', name: 'Imo Digital City Limited', visible: true },
+    { key: 'NNPC', name: 'NNPC', visible: true }, { key: 'SEPLAT', name: 'Seplat Energy', visible: true },
+  ]}
+  const [d, setD] = useState({ ...def, ...(data || {}), partners: (data?.partners || def.partners) })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  function togglePartner(i) { const p = [...d.partners]; p[i] = { ...p[i], visible: !p[i].visible }; setD({ ...d, partners: p }) }
+  function updatePartnerName(i, v) { const p = [...d.partners]; p[i] = { ...p[i], name: v }; setD({ ...d, partners: p }) }
+  function movePartner(i, dir) { const p = [...d.partners], j = i + dir; if (j < 0 || j >= p.length) return;[p[i], p[j]] = [p[j], p[i]]; setD({ ...d, partners: p }) }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/content', { method: 'PUT', headers: authH(token), body: JSON.stringify({ trustBar: d }) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); onDataChanged()
+  }
+
+  return (
+    <div>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Trust Bar Text</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '14px' }}>
+          <Input label="Star Rating Text" value={d.rating} onChange={e => setD({ ...d, rating: e.target.value })} placeholder="5.0/5" />
+          <Input label="Review Count" value={d.reviewCount} onChange={e => setD({ ...d, reviewCount: e.target.value })} placeholder="500+" />
+          <Input label="Tagline (ALL CAPS recommended)" value={d.tagline} onChange={e => setD({ ...d, tagline: e.target.value })} placeholder="TRUSTED BY GLOBAL BRANDS" />
+        </div>
+      </Card>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '6px', fontFamily: "'HubotSans',sans-serif" }}>Partner Logos</h3>
+        <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Toggle visibility, edit display names, and reorder. Logo images are pre-loaded.</p>
+        {d.partners.map((p, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', padding: '10px 12px', background: p.visible !== false ? '#f0fdf4' : '#f9f9f9', borderRadius: '8px', border: `1px solid ${p.visible !== false ? '#bbf7d0' : '#eee'}` }}>
+            <button onClick={() => togglePartner(i)} style={{ background: p.visible !== false ? '#16a34a' : '#ddd', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: '12px', whiteSpace: 'nowrap', fontFamily: "'HubotSans',sans-serif", minWidth: '80px' }}>
+              {p.visible !== false ? '✓ Visible' : '✗ Hidden'}
+            </button>
+            <span style={{ fontSize: '11px', color: '#aaa', fontFamily: "'HubotSans',sans-serif", minWidth: '80px' }}>Key: {p.key}</span>
+            <input value={p.name} onChange={e => updatePartnerName(i, e.target.value)}
+              style={{ flex: 1, padding: '7px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <button onClick={() => movePartner(i, -1)} disabled={i === 0} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '11px', color: PRI }}>▲</button>
+              <button onClick={() => movePartner(i, 1)} disabled={i === d.partners.length - 1} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '11px', color: PRI }}>▼</button>
+            </div>
+          </div>
+        ))}
+      </Card>
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
+function BestSellingEditor({ token, data, onDataChanged }) {
+  const [heading, setHeading] = useState(data?.bestSelling_heading || 'BEST SELLING')
+  const [subheading, setSubheading] = useState(data?.bestSelling_subheading || 'our most popular and trusted products')
+  const [items, setItems] = useState(data?.bestSelling || [])
+  const [newSlug, setNewSlug] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  function toggleItem(i) { const a = [...items]; a[i] = { ...a[i], visible: a[i].visible === false ? true : false }; setItems(a) }
+  function updateItem(i, f, v) { const a = [...items]; a[i] = { ...a[i], [f]: v }; setItems(a) }
+  function removeItem(i) { if (confirm('Remove this item from Best Selling?')) setItems(items.filter((_, idx) => idx !== i)) }
+  function moveItem(i, dir) { const a = [...items], j = i + dir; if (j < 0 || j >= a.length) return;[a[i], a[j]] = [a[j], a[i]]; setItems(a) }
+  function addItem() {
+    const p = ALL_PRODUCTS.find(pr => pr.slug === newSlug.trim() || pr.name.toLowerCase() === newSlug.trim().toLowerCase())
+    if (!p) return alert('Product not found. Enter a valid product slug or name.')
+    if (items.find(it => it.slug === p.slug)) return alert('Already in list.')
+    setItems([...items, { id: p.id, name: p.name, slug: p.slug, price: `From ₦${(p.priceTable?.[0]?.unitPrice * (p.priceTable?.[0]?.qty || 1) || p.price || 0).toLocaleString()}`, unit: 'per piece', visible: true }])
+    setNewSlug('')
+  }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/content', { method: 'PUT', headers: authH(token), body: JSON.stringify({ bestSelling: items, bestSelling_heading: heading, bestSelling_subheading: subheading }) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); onDataChanged()
+  }
+
+  return (
+    <div>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Section Heading</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '14px' }}>
+          <Input label="Heading" value={heading} onChange={e => setHeading(e.target.value)} placeholder="BEST SELLING" />
+          <Input label="Sub-heading" value={subheading} onChange={e => setSubheading(e.target.value)} placeholder="our most popular and trusted products" />
+        </div>
+      </Card>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '6px', fontFamily: "'HubotSans',sans-serif" }}>Featured Products</h3>
+        <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Reorder, toggle visibility, or edit the displayed price text for each product.</p>
+        {items.map((item, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', padding: '10px 12px', background: item.visible !== false ? '#fff' : '#f9f9f9', borderRadius: '8px', border: `1px solid ${item.visible !== false ? '#e0d6f5' : '#eee'}`, flexWrap: 'wrap' }}>
+            <button onClick={() => toggleItem(i)} style={{ background: item.visible !== false ? PRI : '#ddd', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 700, fontSize: '11px', minWidth: '76px', fontFamily: "'HubotSans',sans-serif" }}>
+              {item.visible !== false ? '✓ Show' : '✗ Hide'}
+            </button>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#333', fontFamily: "'HubotSans',sans-serif", flex: 1, minWidth: '100px' }}>{item.name}</span>
+            <input value={item.price} onChange={e => updateItem(i, 'price', e.target.value)} placeholder="From ₦22,500"
+              style={{ width: '130px', padding: '6px 8px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '12px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+            <input value={item.unit} onChange={e => updateItem(i, 'unit', e.target.value)} placeholder="per 500pcs"
+              style={{ width: '110px', padding: '6px 8px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '12px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button onClick={() => moveItem(i, -1)} disabled={i === 0} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▲</button>
+              <button onClick={() => moveItem(i, 1)} disabled={i === items.length - 1} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▼</button>
+              <button onClick={() => removeItem(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', color: '#dc2626', fontWeight: 700, fontSize: '12px' }}>×</button>
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+          <input value={newSlug} onChange={e => setNewSlug(e.target.value)} placeholder="Type product slug or name to add…"
+            style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #ddd', borderRadius: '8px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }}
+            onKeyDown={e => e.key === 'Enter' && addItem()} />
+          <Btn variant="ghost" onClick={addItem}>+ Add Product</Btn>
+        </div>
+      </Card>
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
+function TestimonialsEditor({ token, data, onDataChanged }) {
+  const [heading, setHeading] = useState(data?.heading || 'Customers love Sleekblue')
+  const [rating, setRating] = useState(data?.rating || '5.0/5')
+  const [reviewCount, setReviewCount] = useState(data?.reviewCount || '500+')
+  const [testimonials, setTestimonials] = useState(data?.testimonials || [])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [form, setForm] = useState({ name: '', location: '', rating: 5, text: '', visible: true })
+  const [adding, setAdding] = useState(false)
+
+  function updateT(i, f, v) { const a = [...testimonials]; a[i] = { ...a[i], [f]: v }; setTestimonials(a) }
+  function removeT(i) { if (confirm('Remove this testimonial?')) setTestimonials(testimonials.filter((_, idx) => idx !== i)) }
+  function moveT(i, dir) { const a = [...testimonials], j = i + dir; if (j < 0 || j >= a.length) return;[a[i], a[j]] = [a[j], a[i]]; setTestimonials(a) }
+  function toggleT(i) { const a = [...testimonials]; a[i] = { ...a[i], visible: a[i].visible !== false ? false : true }; setTestimonials(a) }
+  function addT() {
+    if (!form.name.trim() || !form.text.trim()) return alert('Name and review text are required.')
+    setTestimonials([...testimonials, { ...form }])
+    setForm({ name: '', location: '', rating: 5, text: '', visible: true }); setAdding(false)
+  }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/content', { method: 'PUT', headers: authH(token), body: JSON.stringify({ reviews: { heading, rating, reviewCount, testimonials } }) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); onDataChanged()
+  }
+
+  return (
+    <div>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Section Heading</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gap: '14px' }}>
+          <Input label="Section Heading" value={heading} onChange={e => setHeading(e.target.value)} placeholder="Customers love Sleekblue" />
+          <Input label="Rating Text" value={rating} onChange={e => setRating(e.target.value)} placeholder="5.0/5" />
+          <Input label="Review Count" value={reviewCount} onChange={e => setReviewCount(e.target.value)} placeholder="500+" />
+        </div>
+      </Card>
+      <Card style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Testimonials ({testimonials.length})</h3>
+          <Btn onClick={() => setAdding(!adding)} variant={adding ? 'ghost' : 'primary'} style={{ padding: '7px 14px', fontSize: '12px' }}>{adding ? 'Cancel' : '+ Add Testimonial'}</Btn>
+        </div>
+        {adding && (
+          <div style={{ background: PRI_LIGHT, borderRadius: '10px', padding: '16px', marginBottom: '16px', border: `1.5px solid ${PRI}30` }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>New Testimonial</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <Input label="Customer Name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Emeka Okafor" />
+              <Input label="Location (optional)" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Lagos, Nigeria" />
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#555', marginBottom: '5px', fontFamily: "'HubotSans',sans-serif" }}>Star Rating</label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {[1,2,3,4,5].map(s => (
+                  <button key={s} onClick={() => setForm({ ...form, rating: s })}
+                    style={{ background: s <= form.rating ? '#F5A623' : '#eee', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>★</button>
+                ))}
+                <span style={{ alignSelf: 'center', fontSize: '12px', color: '#888', fontFamily: "'HubotSans',sans-serif" }}>{form.rating} stars</span>
+              </div>
+            </div>
+            <Input label="Review Text *" value={form.text} onChange={e => setForm({ ...form, text: e.target.value })} placeholder="What did the customer say?" rows={3} />
+            <Btn onClick={addT} style={{ marginTop: '4px' }}>+ Add This Testimonial</Btn>
+          </div>
+        )}
+        {testimonials.length === 0 && !adding && (
+          <p style={{ color: '#aaa', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: "'HubotSans',sans-serif" }}>No testimonials yet. Click "+ Add Testimonial" to create your first one.</p>
+        )}
+        {testimonials.map((t, i) => (
+          <div key={i} style={{ padding: '12px 14px', background: t.visible !== false ? '#fff' : '#f9f9f9', borderRadius: '8px', border: `1px solid ${t.visible !== false ? '#e0d6f5' : '#eee'}`, marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input value={t.name} onChange={e => updateT(i, 'name', e.target.value)}
+                    style={{ padding: '5px 8px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontWeight: 700, fontFamily: "'HubotSans',sans-serif", outline: 'none', width: '160px' }} />
+                  <input value={t.location || ''} onChange={e => updateT(i, 'location', e.target.value)} placeholder="Location"
+                    style={{ padding: '5px 8px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '12px', fontFamily: "'HubotSans',sans-serif", outline: 'none', width: '140px', color: '#888' }} />
+                  <div style={{ display: 'flex', gap: '3px' }}>
+                    {[1,2,3,4,5].map(s => (
+                      <button key={s} onClick={() => updateT(i, 'rating', s)}
+                        style={{ background: s <= (t.rating||5) ? '#F5A623' : '#eee', border: 'none', borderRadius: '4px', padding: '3px 6px', cursor: 'pointer', fontSize: '12px' }}>★</button>
+                    ))}
+                  </div>
+                </div>
+                <textarea value={t.text} onChange={e => updateT(i, 'text', e.target.value)} rows={2}
+                  style={{ width: '100%', padding: '6px 8px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '12.5px', fontFamily: "'HubotSans',sans-serif", outline: 'none', resize: 'vertical', boxSizing: 'border-box', color: '#333' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
+                <button onClick={() => toggleT(i)} style={{ background: t.visible !== false ? '#dcfce7' : '#f9f9f9', border: 'none', borderRadius: '5px', padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, color: t.visible !== false ? '#16a34a' : '#999', fontFamily: "'HubotSans',sans-serif", whiteSpace: 'nowrap' }}>{t.visible !== false ? '✓ Visible' : '✗ Hidden'}</button>
+                <button onClick={() => moveT(i, -1)} disabled={i === 0} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '5px', padding: '4px 8px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▲</button>
+                <button onClick={() => moveT(i, 1)} disabled={i === testimonials.length - 1} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '5px', padding: '4px 8px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▼</button>
+                <button onClick={() => removeT(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '5px', padding: '4px 8px', cursor: 'pointer', color: '#dc2626', fontWeight: 700, fontSize: '12px' }}>×</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </Card>
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
+function FooterEditor({ token, data, onDataChanged }) {
+  const [tagline, setTagline] = useState(data?.tagline || 'Premium print, branding & design solutions for businesses across Nigeria. Fast turnaround, zero stress.')
+  const [services, setServices] = useState(data?.services || ['Die Cut Stickers', 'Flex Banners', 'Business Cards', 'Vehicle Branding', 'Logo & Branding', 'T-Shirts & Caps', 'Rollup Stands', 'Burial Brochures'])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  function updateService(i, v) { const s = [...services]; s[i] = v; setServices(s) }
+  function removeService(i) { setServices(services.filter((_, idx) => idx !== i)) }
+  function moveService(i, dir) { const s = [...services], j = i + dir; if (j < 0 || j >= s.length) return;[s[i], s[j]] = [s[j], s[i]]; setServices(s) }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/content', { method: 'PUT', headers: authH(token), body: JSON.stringify({ footer: { tagline, services } }) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); onDataChanged()
+  }
+
+  return (
+    <div>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Footer Tagline</h3>
+        <Input label="Tagline Text" value={tagline} onChange={e => setTagline(e.target.value)} rows={3} placeholder="Premium print, branding & design solutions…" />
+      </Card>
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '6px', fontFamily: "'HubotSans',sans-serif" }}>Services List</h3>
+        <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>These appear in the "Services" column in the footer. Reorder or edit as needed.</p>
+        {services.map((s, i) => (
+          <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+            <input value={s} onChange={e => updateService(i, e.target.value)}
+              style={{ flex: 1, padding: '7px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+            <button onClick={() => moveService(i, -1)} disabled={i === 0} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '4px 9px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▲</button>
+            <button onClick={() => moveService(i, 1)} disabled={i === services.length - 1} style={{ background: PRI_LIGHT, border: 'none', borderRadius: '4px', padding: '4px 9px', cursor: 'pointer', color: PRI, fontSize: '11px' }}>▼</button>
+            <button onClick={() => removeService(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '5px', padding: '4px 9px', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</button>
+          </div>
+        ))}
+        <Btn variant="ghost" onClick={() => setServices([...services, ''])} style={{ marginTop: '6px' }}>+ Add Service</Btn>
+      </Card>
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
+function ContentView({ token, content, onDataChanged }) {
+  const [tab, setTab] = useState('trustBar')
+  const tabs = [
+    { id: 'trustBar', label: '⭐ Trust Bar' },
+    { id: 'bestSelling', label: '🛍️ Best Selling' },
+    { id: 'testimonials', label: '💬 Testimonials' },
+    { id: 'footer', label: '🔻 Footer' },
+  ]
+  return (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>Content Management</h2>
+        <p style={{ color: '#888', fontSize: '13px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Edit every text section and content block visible on the website.</p>
+      </div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: tab === t.id ? PRI : '#fff', color: tab === t.id ? '#fff' : '#555', fontWeight: tab === t.id ? 700 : 500, fontSize: '13px', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', fontFamily: "'HubotSans',sans-serif", transition: 'all 0.15s' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === 'trustBar'    && <TrustBarEditor    token={token} data={content.trustBar}   onDataChanged={onDataChanged} />}
+      {tab === 'bestSelling' && <BestSellingEditor  token={token} data={content}             onDataChanged={onDataChanged} />}
+      {tab === 'testimonials'&& <TestimonialsEditor token={token} data={content.reviews}    onDataChanged={onDataChanged} />}
+      {tab === 'footer'      && <FooterEditor       token={token} data={content.footer}     onDataChanged={onDataChanged} />}
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem('sbm_admin_token') || '')
   const [view, setView] = useState('dashboard')
-  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [] })
+  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {} })
   const [loading, setLoading] = useState(false)
 
   const fetchAll = useCallback(async (tok = token) => {
     if (!tok) return
     setLoading(true)
     try {
-      const [dataRes, accRes] = await Promise.all([
+      const [dataRes, accRes, contentRes] = await Promise.all([
         fetch('/api/admin/site-data', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/admin/acceptances', { headers: { Authorization: `Bearer ${tok}` } }),
+        fetch('/api/content'),
       ])
       if (dataRes.status === 401) { handleLogout(); return }
       const data = await dataRes.json()
       const acceptances = await accRes.json()
+      const content = contentRes.ok ? await contentRes.json() : {}
       setSiteData({
         settings:             data.settings             || {},
         productOverrides:     data.productOverrides     || {},
         stickerPriceOverrides:data.stickerPriceOverrides || {},
         acceptances:          Array.isArray(acceptances) ? acceptances : [],
+        content,
       })
     } catch {}
     setLoading(false)
@@ -772,6 +1152,7 @@ export default function AdminPage() {
             {view === 'dashboard'      && <DashboardView siteData={siteData} />}
             {view === 'products'       && <ProductsView token={token} productOverrides={siteData.productOverrides} onDataChanged={fetchAll} />}
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
+            {view === 'content'        && <ContentView token={token} content={siteData.content} onDataChanged={fetchAll} />}
             {view === 'settings'       && <SettingsView token={token} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'acceptances'    && <AcceptancesView acceptances={siteData.acceptances} />}
             {view === 'security'       && <SecurityView token={token} />}

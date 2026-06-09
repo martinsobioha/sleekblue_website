@@ -60,7 +60,7 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/sbm-control-2026" element={<AdminPage />} />
           <Route path="/*"     element={<MainSite />} />
         </Routes>
       </Suspense>

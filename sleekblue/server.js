@@ -166,4 +166,76 @@ app.put('/api/admin/password', requireAuth, (req, res) => {
   res.json({ ok: true })
 })
 
+// ── Content defaults ──────────────────────────────────────────────────────────
+const DEFAULT_CONTENT = {
+  trustBar: {
+    rating: '5.0/5', reviewCount: '500+', tagline: 'TRUSTED BY GLOBAL BRANDS',
+    partners: [
+      { key: 'UBA', name: 'UBA', visible: true },
+      { key: 'MTN', name: 'MTN', visible: true },
+      { key: 'HERO', name: 'HERO', visible: true },
+      { key: 'IMO_DIGITAL', name: 'Imo Digital City Limited', visible: true },
+      { key: 'NNPC', name: 'NNPC', visible: true },
+      { key: 'SEPLAT', name: 'Seplat Energy', visible: true },
+    ],
+  },
+  bestSelling: [
+    { id: 6,  name: 'Die Cut Stickers',    slug: 'die-cut-stickers',  price: 'From ₦22,500', unit: 'per 500pcs', visible: true },
+    { id: 1,  name: 'Flex Banner',         slug: 'flex-banner',       price: 'From ₦5,000',  unit: 'per piece',  visible: true },
+    { id: 29, name: 'Burial Brochure',     slug: 'burial-brochure',   price: 'From ₦6,000',  unit: 'per 50pcs',  visible: true },
+    { id: 30, name: 'Flyers & Posters',    slug: 'flyers-posters',    price: 'From ₦3,500',  unit: 'per 100pcs', visible: true },
+    { id: 31, name: 'Rollup Stand',        slug: 'rollup-stand',      price: 'From ₦25,000', unit: 'per piece',  visible: true },
+    { id: 32, name: 'T-Shirt & Cap',       slug: 't-shirt-cap',       price: 'From ₦5,000',  unit: 'per 10pcs',  visible: true },
+    { id: 33, name: 'Signage & Billboard', slug: 'signage',           price: 'From ₦35,000', unit: 'per piece',  visible: true },
+    { id: 27, name: 'Corporate Branding',  slug: 'graphic-design',    price: 'From ₦10,000', unit: 'per design', visible: true },
+    { id: 9,  name: 'Business Card',       slug: 'business-card',     price: 'From ₦5,000',  unit: 'per 100pcs', visible: true },
+    { id: 26, name: 'T-Shirts',            slug: 't-shirts',          price: 'From ₦5,000',  unit: 'per 10pcs',  visible: true },
+  ],
+  bestSelling_heading: 'BEST SELLING',
+  bestSelling_subheading: 'our most popular and trusted products',
+  reviews: { heading: 'Customers love Sleekblue', rating: '5.0/5', reviewCount: '500+', testimonials: [] },
+  footer: {
+    tagline: 'Premium print, branding & design solutions for businesses across Nigeria. Fast turnaround, zero stress.',
+    services: ['Die Cut Stickers', 'Flex Banners', 'Business Cards', 'Vehicle Branding', 'Logo & Branding', 'T-Shirts & Caps', 'Rollup Stands', 'Burial Brochures'],
+  },
+}
+
+function mergeContentDefaults(saved) {
+  return {
+    trustBar: {
+      ...DEFAULT_CONTENT.trustBar,
+      ...(saved.trustBar || {}),
+      partners: saved.trustBar?.partners || DEFAULT_CONTENT.trustBar.partners,
+    },
+    bestSelling:           saved.bestSelling           || DEFAULT_CONTENT.bestSelling,
+    bestSelling_heading:   saved.bestSelling_heading   || DEFAULT_CONTENT.bestSelling_heading,
+    bestSelling_subheading:saved.bestSelling_subheading|| DEFAULT_CONTENT.bestSelling_subheading,
+    reviews: {
+      ...DEFAULT_CONTENT.reviews,
+      ...(saved.reviews || {}),
+      testimonials: saved.reviews?.testimonials || [],
+    },
+    footer: {
+      ...DEFAULT_CONTENT.footer,
+      ...(saved.footer || {}),
+      services: saved.footer?.services || DEFAULT_CONTENT.footer.services,
+    },
+  }
+}
+
+// ── Public: Site content ──────────────────────────────────────────────────────
+app.get('/api/content', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(mergeContentDefaults(data.content || {}))
+})
+
+// ── Admin: Site content ───────────────────────────────────────────────────────
+app.put('/api/admin/content', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, { settings: {}, productOverrides: {}, stickerPriceOverrides: {}, content: {} })
+  data.content = { ...(data.content || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Content updated:', Object.keys(req.body).join(', '))
+  res.json({ ok: true })
+})
+
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))

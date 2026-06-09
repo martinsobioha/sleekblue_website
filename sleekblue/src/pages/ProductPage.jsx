@@ -79,12 +79,14 @@ export default function ProductPage() {
   const hasImages = productImgs.length > 0
   const displayImgs = hasImages ? productImgs : null
 
-  // --- Pricing logic ---
+  // --- Pricing logic (variant-aware) ---
+  const variantPriceTable = (!isDieCut && adminOverride?.variantPrices?.[selectedSize] && adminOverride.variantPrices[selectedSize].length > 0)
+    ? adminOverride.variantPrices[selectedSize]
+    : null
+
   function getPrice(qty) {
-    if (isDieCut) {
-      return calcStickerPrice(effectiveSize, qty).total
-    }
-    const table = product.priceTable || []
+    if (isDieCut) return calcStickerPrice(effectiveSize, qty).total
+    const table = variantPriceTable || product.priceTable || []
     if (table.length === 0) return product.price * qty
     let unit = table[0].unitPrice
     for (const row of table) { if (qty >= row.qty) unit = row.unitPrice }
@@ -99,9 +101,10 @@ export default function ProductPage() {
   const discountPct = stickerCalc ? Math.round(stickerCalc.discountRate * 100) : 0
 
   // Price table rows for display
+  const activePriceTable = variantPriceTable || product.priceTable || []
   const priceRows = isDieCut
     ? getStickerPriceTable(effectiveSize)
-    : product.priceTable.map(row => ({ qty: row.qty, label: row.qty.toLocaleString(), total: row.unitPrice * row.qty, unitPrice: row.unitPrice, discountRate: 0 }))
+    : activePriceTable.map(row => ({ qty: row.qty, label: row.qty.toLocaleString(), total: row.unitPrice * row.qty, unitPrice: row.unitPrice, discountRate: 0 }))
 
   function handleAddToCart() {
     addToCart({

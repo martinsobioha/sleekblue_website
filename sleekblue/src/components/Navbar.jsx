@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { FaPhoneAlt, FaSearch, FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import { NAV_MENUS, ALL_PRODUCTS } from '../data/products'
@@ -155,10 +155,6 @@ export default function Navbar() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span onClick={() => navigate('/quote')} style={{ fontSize: '13.5px', fontWeight: 700, color: '#1a1a1a', cursor: 'pointer', padding: '11px 0', whiteSpace: 'nowrap' }}>Request Quote</span>
-            <Link to="/admin" title="Admin Panel" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#999', textDecoration: 'none', padding: '6px 10px', borderRadius: '6px', border: '1px solid #eee', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#7B2FBE'; e.currentTarget.style.borderColor = '#7B2FBE'; e.currentTarget.style.background = '#f5f0ff' }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#999'; e.currentTarget.style.borderColor = '#eee'; e.currentTarget.style.background = 'transparent' }}
-            >⚙ Admin</Link>
           </div>
         </div>
       </div>

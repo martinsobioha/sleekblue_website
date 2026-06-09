@@ -1,8 +1,25 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.jpg'
 
+const DEFAULT_TAGLINE = 'Premium print, branding & design solutions for businesses across Nigeria. Fast turnaround, zero stress.'
+const DEFAULT_SERVICES = ['Die Cut Stickers', 'Flex Banners', 'Business Cards', 'Vehicle Branding', 'Logo & Branding', 'T-Shirts & Caps', 'Rollup Stands', 'Burial Brochures']
+
 export default function Footer() {
   const year = new Date().getFullYear()
+  const [tagline, setTagline] = useState(DEFAULT_TAGLINE)
+  const [services, setServices] = useState(DEFAULT_SERVICES)
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.footer?.tagline) setTagline(d.footer.tagline)
+        if (d?.footer?.services?.length) setServices(d.footer.services)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <footer style={{ background: '#1a0a2e', color: '#ccc', paddingTop: '48px', paddingBottom: '24px', fontFamily: "'HubotSans', sans-serif" }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
@@ -12,7 +29,7 @@ export default function Footer() {
           <div>
             <img src={logo} alt="Sleekblue Media Houz" style={{ height: '48px', borderRadius: '8px', marginBottom: '14px' }} />
             <p style={{ fontSize: '13px', lineHeight: 1.7, color: '#aaa', margin: '0 0 12px' }}>
-              Premium print, branding &amp; design solutions for businesses across Nigeria. Fast turnaround, zero stress.
+              {tagline}
             </p>
             <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
               <a href="https://wa.me/2348065275264" target="_blank" rel="noopener noreferrer" style={{ background: '#25D366', color: '#fff', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '16px' }}>💬</a>
@@ -41,8 +58,8 @@ export default function Footer() {
           {/* Services */}
           <div>
             <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: 700, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Services</h4>
-            {['Die Cut Stickers', 'Flex Banners', 'Business Cards', 'Vehicle Branding', 'Logo & Branding', 'T-Shirts & Caps', 'Rollup Stands', 'Burial Brochures'].map(s => (
-              <p key={s} style={{ color: '#aaa', fontSize: '13px', margin: '0 0 9px' }}>{s}</p>
+            {services.map((s, i) => (
+              <p key={i} style={{ color: '#aaa', fontSize: '13px', margin: '0 0 9px' }}>{s}</p>
             ))}
           </div>
 
@@ -65,14 +82,6 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <span style={{ fontSize: '12px', color: '#555' }}>Built with ❤️ in Nigeria</span>
-            <Link to="/admin"
-              style={{ fontSize: '11px', color: '#333', textDecoration: 'none', opacity: 0.6, transition: 'opacity 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
-              title="Admin Panel"
-            >
-              ⚙ Admin
-            </Link>
           </div>
         </div>
       </div>

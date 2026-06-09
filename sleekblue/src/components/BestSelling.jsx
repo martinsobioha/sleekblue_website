@@ -1,19 +1,38 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BEST_SELLING } from '../data/products'
 import { PRODUCT_IMAGES } from '../data/productImages'
 
 export default function BestSelling() {
   const navigate = useNavigate()
+  const [items, setItems] = useState(BEST_SELLING)
+  const [heading, setHeading] = useState('BEST SELLING')
+  const [subheading, setSubheading] = useState('our most popular and trusted products')
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d) return
+        if (d.bestSelling && Array.isArray(d.bestSelling)) {
+          const visible = d.bestSelling.filter(i => i.visible !== false)
+          if (visible.length > 0) setItems(visible)
+        }
+        if (d.bestSelling_heading) setHeading(d.bestSelling_heading)
+        if (d.bestSelling_subheading) setSubheading(d.bestSelling_subheading)
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <section style={{ background: '#FAF3E8', padding: '40px 16px 50px' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a1a', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'HubotSans', sans-serif" }}>BEST SELLING</h2>
-          <p style={{ fontSize: '13px', fontStyle: 'italic', color: '#777', fontFamily: "'HubotSans', sans-serif", fontWeight: 400 }}>our most popular and trusted products</p>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a1a', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'HubotSans', sans-serif" }}>{heading}</h2>
+          <p style={{ fontSize: '13px', fontStyle: 'italic', color: '#777', fontFamily: "'HubotSans', sans-serif", fontWeight: 400 }}>{subheading}</p>
         </div>
         <div className="best-selling-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px' }}>
-          {BEST_SELLING.map((product, idx) => {
+          {items.map((product, idx) => {
             const imgs = PRODUCT_IMAGES[product.slug] || []
             return (
               <div key={idx}
@@ -24,13 +43,7 @@ export default function BestSelling() {
               >
                 <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '8px', overflow: 'hidden', background: idx % 2 === 0 ? '#C8C8C8' : '#B8B8B8', position: 'relative' }}>
                   {imgs[0] ? (
-                    <img
-                      src={imgs[0]}
-                      alt={product.name}
-                      loading="lazy"
-                      decoding="async"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
+                    <img src={imgs[0]} alt={product.name} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', background: idx % 2 === 0 ? '#C8C8C8' : '#B8B8B8' }} />
                   )}
@@ -46,25 +59,16 @@ export default function BestSelling() {
                 <button
                   style={{ background: '#7B2FBE', color: '#fff', border: 'none', borderRadius: '20px', padding: '7px 0', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', width: '85%', fontFamily: "'HubotSans', sans-serif" }}
                   onClick={e => { e.stopPropagation(); navigate(`/store/${product.slug}`) }}
-                >
-                  Shop Now
-                </button>
+                >Shop Now</button>
               </div>
             )
           })}
         </div>
       </div>
-
       <style>{`
-        @media (max-width: 1024px) {
-          .best-selling-grid { grid-template-columns: repeat(4, 1fr) !important; }
-        }
-        @media (max-width: 768px) {
-          .best-selling-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
-        @media (max-width: 480px) {
-          .best-selling-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
+        @media (max-width: 1024px) { .best-selling-grid { grid-template-columns: repeat(4, 1fr) !important; } }
+        @media (max-width: 768px)  { .best-selling-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (max-width: 480px)  { .best-selling-grid { grid-template-columns: repeat(2, 1fr) !important; } }
       `}</style>
     </section>
   )
