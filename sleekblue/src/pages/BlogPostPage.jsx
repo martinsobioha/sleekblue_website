@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { FaStar } from 'react-icons/fa'
+import { useSEO } from '../hooks/useSEO'
 
 export default function BlogPostPage() {
   const { slug } = useParams()
@@ -12,7 +13,14 @@ export default function BlogPostPage() {
   useEffect(() => {
     fetch(`/api/blog/${slug}`)
       .then(r => { if (!r.ok) throw new Error('not found'); return r.json() })
-      .then(d => { setPost(d); setLoading(false) })
+      .then(d => {
+        setPost(d); setLoading(false)
+        if (d?.title) {
+          document.title = `${d.title} — Sleekblue Blog`
+          const meta = document.querySelector('meta[name="description"]')
+          if (meta && d.excerpt) meta.content = d.excerpt
+        }
+      })
       .catch(() => { setNotFound(true); setLoading(false) })
   }, [slug])
 

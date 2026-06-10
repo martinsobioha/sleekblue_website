@@ -3,6 +3,7 @@ import Hero from '../components/Hero'
 import TrustBar from '../components/TrustBar'
 import BestSelling from '../components/BestSelling'
 import Reviews from '../components/Reviews'
+import { useSEO } from '../hooks/useSEO'
 
 const SECTION_MAP = {
   hero:        <Hero />,
@@ -19,6 +20,7 @@ const DEFAULT_LAYOUT = [
 ]
 
 export default function HomePage() {
+  useSEO('home', { title: 'Sleekblue Media Houz — Premium Printing. Zero Stress.', description: 'Nigeria\'s top printing and branding company. Die-cut stickers, flex banners, product labels, corporate branding — fast delivery across Nigeria.', keywords: 'printing company Nigeria, die cut stickers Lagos, flex banner printing, corporate branding Nigeria' })
   const [layout, setLayout] = useState(DEFAULT_LAYOUT)
 
   useEffect(() => {

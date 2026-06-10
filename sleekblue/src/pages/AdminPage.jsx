@@ -493,6 +493,7 @@ function Sidebar({ view, setView, counts, onLogout }) {
     { id: 'blog',           icon: '✍️', label: 'Blog',       badge: counts.blogPosts || 0 },
     { id: 'about',          icon: '📖', label: 'About Us' },
     { id: 'content',        icon: '🎨', label: 'Content CMS' },
+    { id: 'seo',            icon: '🔍', label: 'SEO Manager' },
     { id: 'settings',       icon: '⚙️', label: 'Site Settings' },
     { id: 'acceptances',    icon: '📋', label: 'T&C Acceptances', badge: counts.acceptances },
     { id: 'security',       icon: '🔑', label: 'Security' },
@@ -904,6 +905,28 @@ function StickerPricesView({ token, stickerPriceOverrides, onDataChanged }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [newSize, setNewSize] = useState('')
+  const [stickerImages, setStickerImages] = useState({})
+  const [uploading, setUploading] = useState(null)
+  const [showImages, setShowImages] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/sticker-images').then(r => r.ok ? r.json() : {}).then(setStickerImages).catch(() => {})
+  }, [])
+
+  async function uploadStickerImg(size, file) {
+    setUploading(size)
+    const fd = new FormData(); fd.append('image', file); fd.append('size', size)
+    const res = await fetch('/api/admin/upload/sticker-image', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+    const json = await res.json()
+    setUploading(null)
+    if (json.url) setStickerImages(prev => ({ ...prev, [size]: [...(prev[size] || []), json.url] }))
+  }
+
+  async function deleteStickerImg(size, url) {
+    if (!confirm('Remove this image?')) return
+    await fetch('/api/admin/sticker-image', { method: 'DELETE', headers: authH(token), body: JSON.stringify({ size, url }) })
+    setStickerImages(prev => ({ ...prev, [size]: (prev[size] || []).filter(u => u !== url) }))
+  }
 
   function update(size, field, val) {
     setPrices(prev => ({ ...prev, [size]: { ...prev[size], [field]: parseFloat(val) || 0 } }))
@@ -929,9 +952,12 @@ function StickerPricesView({ token, stickerPriceOverrides, onDataChanged }) {
     <div>
       <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', marginBottom: '6px', fontFamily: "'HubotSans',sans-serif" }}>Die-Cut Sticker Prices</h2>
       <p style={{ color: '#888', fontSize: '13px', marginBottom: '20px', fontFamily: "'HubotSans',sans-serif" }}>
-        Edit the base prices for all sticker sizes. Bulk discounts (500+, 1000+) are calculated automatically from these values.
+        Edit base prices for all sticker sizes. Bulk discounts (500+, 1000+) are applied automatically. You can also upload showcase images per size.
       </p>
-      <Card>
+
+      {/* Price table */}
+      <Card style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>💰 Price Matrix</h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
@@ -941,7 +967,7 @@ function StickerPricesView({ token, stickerPriceOverrides, onDataChanged }) {
                 <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif", fontWeight: 700 }}>500 pcs (₦ total)</th>
                 <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif", fontWeight: 700 }}>1,000 pcs (₦ total)</th>
                 <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif", fontWeight: 700 }}>Unit @ 100</th>
-                <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif", fontWeight: 700 }}>Changed</th>
+                <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: "'HubotSans',sans-serif", fontWeight: 700 }}>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -970,6 +996,58 @@ function StickerPricesView({ token, stickerPriceOverrides, onDataChanged }) {
           <Btn variant="ghost" onClick={addSize}>+ Add Size</Btn>
         </div>
         <SaveBar onSave={handleSave} saving={saving} saved={saved} />
+      </Card>
+
+      {/* Sticker size image gallery */}
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: '0 0 3px', fontFamily: "'HubotSans',sans-serif" }}>🖼️ Sticker Showcase Images</h3>
+            <p style={{ fontSize: '12px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Upload photos per sticker size — shown on the product page when customers pick that size</p>
+          </div>
+          <button onClick={() => setShowImages(!showImages)}
+            style={{ background: PRI_LIGHT, border: `1px solid ${PRI}40`, color: PRI, borderRadius: '8px', padding: '7px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans',sans-serif" }}>
+            {showImages ? '▲ Collapse' : '▼ Expand'}
+          </button>
+        </div>
+
+        {showImages && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+            {Object.keys(prices).map(size => {
+              const imgs = stickerImages[size] || []
+              return (
+                <div key={size} style={{ border: `1.5px solid ${PRI}30`, borderRadius: '10px', padding: '14px', background: '#faf5ff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>📐 {size}</h4>
+                    <Badge color={imgs.length > 0 ? '#16a34a' : '#888'}>{imgs.length} photo{imgs.length !== 1 ? 's' : ''}</Badge>
+                  </div>
+                  {/* Uploaded images */}
+                  {imgs.length > 0 && (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      {imgs.map((url, i) => (
+                        <div key={i} style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', border: '1.5px solid #ddd' }}>
+                          <img src={url} alt={`${size} sticker`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <button onClick={() => deleteStickerImg(size, url)}
+                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(220,38,38,0.85)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', cursor: 'pointer', color: '#fff', fontSize: '10px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <label style={{ cursor: 'pointer', display: 'block' }}>
+                    <input type="file" accept="image/*" multiple style={{ display: 'none' }}
+                      onChange={e => { Array.from(e.target.files).forEach(f => uploadStickerImg(size, f)) }} />
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: uploading === size ? '#aaa' : '#fff', border: `1.5px dashed ${uploading === size ? '#aaa' : PRI}`, borderRadius: '8px', padding: '8px 12px', fontSize: '12px', fontWeight: 600, color: uploading === size ? '#fff' : PRI, fontFamily: "'HubotSans',sans-serif" }}>
+                      {uploading === size ? '⏳ Uploading…' : '⬆ Upload Images'}
+                    </span>
+                  </label>
+                  <p style={{ fontSize: '11px', color: '#aaa', margin: '6px 0 0', textAlign: 'center', fontFamily: "'HubotSans',sans-serif" }}>
+                    {imgs.length === 0 ? 'Using built-in photo' : 'Custom photos active ✓'}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </Card>
     </div>
   )
@@ -1992,6 +2070,118 @@ function AboutView({ token }) {
   )
 }
 
+// ─── SEO Manager ──────────────────────────────────────────────────────────────
+const SEO_PAGES = [
+  { key: 'home',     label: '🏠 Homepage',        path: '/' },
+  { key: 'store',    label: '🛍️ Store',            path: '/store' },
+  { key: 'about',    label: '📖 About Us',         path: '/about' },
+  { key: 'blog',     label: '✍️ Blog',             path: '/blog' },
+  { key: 'quote',    label: '📝 Request a Quote',  path: '/quote' },
+  { key: 'dieCut',   label: '🏷️ Die-Cut Stickers', path: '/store/die-cut-stickers' },
+  { key: 'flexBanner',label: '📢 Flex Banner',     path: '/store/flex-banner' },
+  { key: 'labels',   label: '🔖 Product Labels',   path: '/store/product-labels' },
+]
+
+function SeoView({ token }) {
+  const [seo, setSeo] = useState({})
+  const [activePage, setActivePage] = useState('home')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/seo').then(r => r.ok ? r.json() : {}).then(setSeo).catch(() => {})
+  }, [])
+
+  function set(pageKey, field, value) {
+    setSeo(prev => ({
+      ...prev,
+      [pageKey]: { ...(prev[pageKey] || {}), [field]: value }
+    }))
+  }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/seo', { method: 'PUT', headers: authH(token), body: JSON.stringify(seo) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
+  }
+
+  const page = SEO_PAGES.find(p => p.key === activePage)
+  const entry = seo[activePage] || {}
+
+  return (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>🔍 SEO Manager</h2>
+        <p style={{ color: '#888', fontSize: '13px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Set meta titles and descriptions for each page. These help Google rank your site higher.</p>
+      </div>
+
+      {/* Page tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {SEO_PAGES.map(p => (
+          <button key={p.key} onClick={() => setActivePage(p.key)}
+            style={{ padding: '7px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activePage === p.key ? PRI : '#fff', color: activePage === p.key ? '#fff' : '#555', fontWeight: activePage === p.key ? 700 : 500, fontSize: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', fontFamily: "'HubotSans',sans-serif" }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: '0 0 3px', fontFamily: "'HubotSans',sans-serif" }}>{page?.label}</h3>
+            <p style={{ fontSize: '11px', color: '#aaa', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>URL: {page?.path}</p>
+          </div>
+        </div>
+
+        <Input label="Meta Title"
+          value={entry.title || ''}
+          onChange={e => set(activePage, 'title', e.target.value)}
+          placeholder="e.g. Sleekblue Media Houz — Premium Printing in Nigeria" />
+        <p style={{ fontSize: '11px', color: entry.title?.length > 60 ? '#dc2626' : '#aaa', margin: '-10px 0 14px', fontFamily: "'HubotSans',sans-serif" }}>
+          {(entry.title || '').length}/60 characters {entry.title?.length > 60 ? '⚠️ Too long — Google truncates at 60' : '✓ Good length'}
+        </p>
+
+        <Input label="Meta Description" rows={3}
+          value={entry.description || ''}
+          onChange={e => set(activePage, 'description', e.target.value)}
+          placeholder="A brief, compelling description of this page (150–160 characters ideal)" />
+        <p style={{ fontSize: '11px', color: (entry.description?.length || 0) > 160 ? '#dc2626' : '#aaa', margin: '-10px 0 14px', fontFamily: "'HubotSans',sans-serif" }}>
+          {(entry.description || '').length}/160 characters {(entry.description?.length || 0) > 160 ? '⚠️ Too long' : (entry.description?.length || 0) > 120 ? '✓ Good' : (entry.description?.length || 0) > 0 ? '⚠️ Too short' : ''}
+        </p>
+
+        <Input label="Keywords (comma separated)"
+          value={entry.keywords || ''}
+          onChange={e => set(activePage, 'keywords', e.target.value)}
+          placeholder="die cut stickers Nigeria, flex banner printing Lagos, branded merchandise" />
+
+        {/* Google preview */}
+        {(entry.title || entry.description) && (
+          <div style={{ marginTop: '8px', background: '#f9f9fb', borderRadius: '10px', padding: '16px', border: '1px solid #e8e8e8' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', fontFamily: "'HubotSans',sans-serif" }}>Google Preview</p>
+            <p style={{ fontSize: '18px', color: '#1a0dab', margin: '0 0 3px', lineHeight: 1.3, fontFamily: 'Arial, sans-serif' }}>{entry.title || 'Page Title'}</p>
+            <p style={{ fontSize: '13px', color: '#006621', margin: '0 0 4px', fontFamily: 'Arial, sans-serif' }}>sleekbluemediahouz.com{page?.path}</p>
+            <p style={{ fontSize: '13px', color: '#545454', margin: 0, lineHeight: 1.55, fontFamily: 'Arial, sans-serif' }}>{entry.description || 'Meta description will appear here…'}</p>
+          </div>
+        )}
+      </Card>
+
+      {/* SEO Tips */}
+      <Card style={{ marginTop: '16px', background: '#f9f5ff' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>💡 SEO Tips for Sleekblue</h3>
+        <ul style={{ fontSize: '12px', color: '#555', lineHeight: 1.8, paddingLeft: '18px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>
+          <li>Include keywords like <strong>"die cut stickers Nigeria"</strong>, <strong>"flex banner Lagos"</strong>, <strong>"printing company Nigeria"</strong></li>
+          <li>Keep meta titles under <strong>60 characters</strong> and descriptions under <strong>160 characters</strong></li>
+          <li>Each page should have a <strong>unique</strong> title and description</li>
+          <li>Mention your city/location — <strong>"Lagos printing company"</strong> gets local search traffic</li>
+          <li>After saving, use <strong>Google Search Console</strong> to track your rankings</li>
+        </ul>
+      </Card>
+
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem('sbm_admin_token') || '')
@@ -2064,6 +2254,7 @@ export default function AdminPage() {
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
             {view === 'blog'           && <BlogView token={token} posts={siteData.blogPosts} onDataChanged={fetchAll} />}
             {view === 'about'          && <AboutView token={token} />}
+            {view === 'seo'            && <SeoView token={token} />}
             {view === 'content'        && <ContentView token={token} content={siteData.content} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'settings'       && <SettingsView token={token} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'acceptances'    && <AcceptancesView acceptances={siteData.acceptances} />}

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSEO } from '../hooks/useSEO'
 
 export default function BlogPage() {
+  useSEO('blog', { title: 'Blog — Printing Tips & Business Ideas | Sleekblue', description: 'Read expert tips on branding, printing, and growing your business from the Sleekblue Media Houz team.' })
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('All')

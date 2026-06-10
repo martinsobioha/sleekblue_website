@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { ALL_PRODUCTS } from '../data/products'
 import { PRODUCT_IMAGES } from '../data/productImages'
+import { useSEO } from '../hooks/useSEO'
 
 export default function StorePage() {
   const navigate = useNavigate()
+  useSEO('store', { title: 'Our Store — Sleekblue Media Houz', description: 'Shop all our printing and branding products — die-cut stickers, flex banners, business cards, t-shirts and more. Fast delivery across Nigeria.' })
   const categories = ['Flex Printing/Large Format', 'Label Stickers', 'Corporate Branding']
 
   return (

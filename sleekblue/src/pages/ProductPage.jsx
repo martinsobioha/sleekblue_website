@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { ALL_PRODUCTS, getProductDetails, calcStickerPrice, getStickerPriceTable, STICKER_SIZE_PRICES } from '../data/products'
 import { PRODUCT_IMAGES, STICKER_SIZE_IMAGES } from '../data/productImages'
+import { useSEO } from '../hooks/useSEO'
 
 const thumbColors = ['#C8C8C8', '#B0B0B0', '#D0D0D0']
 
@@ -32,11 +33,16 @@ export default function ProductPage() {
   const { addToCart } = useCart()
 
   const baseProduct = ALL_PRODUCTS.find(p => p.slug === slug) || ALL_PRODUCTS[7]
+
+  // Dynamic SEO per product page
+  const seoKey = slug === 'die-cut-stickers' ? 'dieCut' : slug === 'flex-banner' ? 'flexBanner' : slug === 'product-labels' ? 'labels' : slug
+  useSEO(seoKey, { title: `${baseProduct?.name || 'Product'} — Sleekblue Media Houz`, description: `Order ${baseProduct?.name || 'custom printing'} from Sleekblue Media Houz. Premium quality, fast delivery across Nigeria.` })
   const baseDetails = getProductDetails(baseProduct.slug)
 
   // Admin overrides — fetched from server, applied on top of static data
   const [adminOverride, setAdminOverride] = useState(null)
   const [uploadedImages, setUploadedImages] = useState({})
+  const [stickerImages, setStickerImages] = useState({})
   useEffect(() => {
     fetch(`/api/products/${baseProduct.slug}`)
       .then(r => r.ok ? r.json() : null)
@@ -45,6 +51,10 @@ export default function ProductPage() {
     fetch('/api/product-images')
       .then(r => r.ok ? r.json() : {})
       .then(d => setUploadedImages(d || {}))
+      .catch(() => {})
+    fetch('/api/sticker-images')
+      .then(r => r.ok ? r.json() : {})
+      .then(d => setStickerImages(d || {}))
       .catch(() => {})
   }, [baseProduct.slug])
 
@@ -79,8 +89,9 @@ export default function ProductPage() {
 
   // Product images — uploaded images take priority; fall back to static
   const uploadedForSlug = uploadedImages[product.slug] || []
+  const serverStickerImgs = stickerImages[effectiveSize] || []
   const productImgs = isDieCut
-    ? (STICKER_SIZE_IMAGES[effectiveSize] || [])
+    ? (serverStickerImgs.length > 0 ? serverStickerImgs : (STICKER_SIZE_IMAGES[effectiveSize] || []))
     : (uploadedForSlug.length > 0 ? uploadedForSlug : (PRODUCT_IMAGES[product.slug] || []))
   const hasImages = productImgs.length > 0
   const displayImgs = hasImages ? productImgs : null

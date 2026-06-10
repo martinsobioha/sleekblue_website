@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useSEO } from '../hooks/useSEO'
 
 export default function CheckoutPage() {
+  useSEO('checkout', { title: 'Checkout — Sleekblue Media Houz', description: 'Complete your printing order with Sleekblue Media Houz. Fast, secure checkout with WhatsApp confirmation.' })
   const navigate = useNavigate()
   const { cartItems, total, discountAmount, discount, clearCart } = useCart()
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', city: '', notes: '' })

@@ -69,6 +69,12 @@ import sticker3x3B   from '@assets/3x3_B_1780614732052.jpg'
 import sticker3x3C   from '@assets/3x3_C_1780614732053.jpg'
 import sticker3x4A   from '@assets/3X4_A_1780614732056.jpg'
 import sticker3x4B   from '@assets/3X4_B_1780614732056.jpg'
+import sticker4x4B   from '@assets/4X4_B_1781055566684.jpg'
+import sticker4x4C   from '@assets/4X4_C_1781055566670.jpg'
+import sticker1p5A   from '@assets/1.5x1.5_A_1781055566686.jpg'
+import sticker1p5B   from '@assets/1.5x1.5_b_1781055566685.jpg'
+import sticker1p5C   from '@assets/1.5x1.5_C_1781055566685.jpg'
+import sticker1p5D   from '@assets/1.5x1.5_D_1781055566684.jpg'
 import umbrellaB     from '@assets/umbrella_b_1780614186226.jpg'
 import umbrellaC     from '@assets/umbrella_c_1780614186227.jpg'
 import umbrellaD     from '@assets/umbrella_d_1780614186228.jpg'
@@ -135,7 +141,9 @@ export const PRODUCT_IMAGES = {
 }
 
 export const STICKER_SIZE_IMAGES = {
+  '1.5x1.5"':         [sticker1p5A, sticker1p5B, sticker1p5C, sticker1p5D],
   '3x3"':             [sticker3x3A, sticker3x3B, sticker3x3C],
   '3x4"':             [sticker3x4A, sticker3x4B],
+  '4x4"':             [sticker4x4B, sticker4x4C],
   '2x8" Water Label': [sticker2x8A, sticker2x8B],
 }

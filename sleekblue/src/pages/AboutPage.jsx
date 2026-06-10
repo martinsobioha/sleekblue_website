@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import sleekblueLogo from '@assets/SLEEKBLUE_LOGO_1779921080596.jpg'
+import { useSEO } from '../hooks/useSEO'
 
 const DEFAULTS = {
   heroTitle: 'About Sleekblue Media Houz',
@@ -31,6 +32,7 @@ const DEFAULTS = {
 }
 
 export default function AboutPage() {
+  useSEO('about', { title: 'About Us — Sleekblue Media Houz | Nigeria Printing Company', description: 'Learn about Sleekblue Media Houz — Nigeria\'s premium printing and corporate branding company. We help brands communicate with clarity and confidence.', keywords: 'about Sleekblue, Nigerian printing company, corporate branding Lagos' })
   const [d, setD] = useState(DEFAULTS)
   const [settings, setSettings] = useState({})
 

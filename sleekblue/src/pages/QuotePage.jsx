@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { ALL_PRODUCTS } from '../data/products'
+import { useSEO } from '../hooks/useSEO'
 
 export default function QuotePage() {
+  useSEO('quote', { title: 'Request a Quote — Sleekblue Media Houz', description: 'Get a fast custom quote for your printing order — die-cut stickers, flex banners, business cards and more. We respond via WhatsApp within minutes.' })
   const [form, setForm] = useState({ name: '', phone: '', email: '', product: '', quantity: '', details: '' })
   const [submitted, setSubmitted] = useState(false)
 

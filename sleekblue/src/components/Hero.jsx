@@ -44,6 +44,9 @@ export default function Hero() {
           <img
             src={slide}
             alt={`Slide ${i + 1}`}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={i === 0 ? 'high' : 'auto'}
             style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: '520px' }}
           />
 

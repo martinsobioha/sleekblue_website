@@ -379,6 +379,40 @@ app.get('/api/product-images', (req, res) => {
   res.json(data.productImages || {})
 })
 
+// Sticker size images — upload and retrieve
+app.get('/api/sticker-images', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.stickerImages || {})
+})
+
+app.post('/api/admin/upload/sticker-image', requireAuth, productUpload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+  const { size } = req.body
+  if (!size) return res.status(400).json({ error: 'size is required' })
+  const url = `/uploads/products/${req.file.filename}`
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.stickerImages = data.stickerImages || {}
+  data.stickerImages[size] = data.stickerImages[size] || []
+  if (!data.stickerImages[size].includes(url)) data.stickerImages[size].push(url)
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Sticker image uploaded for size', size, ':', url)
+  res.json({ ok: true, url, size })
+})
+
+app.delete('/api/admin/sticker-image', requireAuth, (req, res) => {
+  const { size, url } = req.body
+  if (!size || !url) return res.status(400).json({ error: 'size and url required' })
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.stickerImages = data.stickerImages || {}
+  data.stickerImages[size] = (data.stickerImages[size] || []).filter(u => u !== url)
+  writeJSON(SITE_DATA_FILE, data)
+  try {
+    const filename = url.replace('/uploads/products/', '')
+    unlinkSync(join(UPLOADS_DIR, 'products', filename))
+  } catch {}
+  res.json({ ok: true })
+})
+
 // Upload brand/partner logo (returns URL only — stored via content save)
 app.post('/api/admin/upload/brand-logo', requireAuth, siteUpload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
@@ -528,6 +562,20 @@ app.post('/api/admin/upload/blog', requireAuth, blogUpload.single('file'), (req,
   const type = req.file.mimetype.startsWith('audio/') ? 'audio' : req.file.mimetype.startsWith('video/') ? 'video' : 'image'
   console.log('[Admin] Blog media uploaded:', url)
   res.json({ ok: true, url, type })
+})
+
+// ─── SEO Settings ─────────────────────────────────────────────────────────────
+app.get('/api/seo', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.seo || {})
+})
+
+app.put('/api/admin/seo', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.seo = { ...(data.seo || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] SEO settings saved')
+  res.json({ ok: true, seo: data.seo })
 })
 
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))

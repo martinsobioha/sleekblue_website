@@ -324,6 +324,32 @@
         "Logo",
         "Full Branding"
       ]
+    },
+    "die-cut-stickers": {
+      "name": "Die Cut Stickers",
+      "category": "Label Stickers",
+      "badge": "Most Popular",
+      "description": "Premium waterproof die-cut stickers cut to any shape. Ideal for product labelling, branding zobo, yoghurt, parfait, bottled drinks, and more.",
+      "features": [
+        "Waterproof & UV resistant",
+        "Strong permanent adhesive",
+        "Cut to any shape or design",
+        "High-resolution full-colour print",
+        "Easy to peel and apply",
+        "Bulk discounts from 500 pcs"
+      ],
+      "priceTable": [],
+      "sizes": [
+        "1.5x1.5\"",
+        "2x2\"",
+        "2.5x2.5\"",
+        "3x3\"",
+        "3x4\"",
+        "4x4\"",
+        "2x8\" Water Label",
+        "Custom"
+      ],
+      "variantPrices": null
     }
   },
   "stickerPriceOverrides": {},
@@ -368,10 +394,80 @@
   },
   "productImages": {
     "die-cut-stickers": [
-      "/uploads/products/1781047060160.jpg"
+      "/uploads/products/1781047060160.jpg",
+      "/uploads/products/1781054435395.jpg"
     ]
   },
   "hero": {
     "customSlides": []
+  },
+  "about": {
+    "heroTitle": "About Sleekblue Media Houz",
+    "heroSubtitle": "We print for the biggest brands — and yours is next.",
+    "whoWeAreTitle": "Who We Are",
+    "whoWeAre": "Sleekblue Media Houz is a premium printing and corporate branding company dedicated to helping businesses of all sizes — from solopreneurs to big brands — communicate their identity with clarity and confidence. We specialize in die-cut stickers, flex printing, large format printing, corporate branding, and a wide range of promotional materials.",
+    "missionTitle": "Our Mission",
+    "mission": "To deliver premium printing with zero stress — high quality output, fast turnaround, and reliable service that empowers small businesses and enterprise brands alike to stand out in their market.",
+    "valuesTitle": "What Sets Us Apart",
+    "values": [
+      {
+        "icon": "🎯",
+        "title": "Precision",
+        "desc": "Every cut, every print is executed to exact specifications."
+      },
+      {
+        "icon": "⚡",
+        "title": "Speed",
+        "desc": "Fast turnaround without compromising on quality."
+      },
+      {
+        "icon": "💎",
+        "title": "Quality",
+        "desc": "Waterproof, durable materials that last and impress."
+      },
+      {
+        "icon": "🤝",
+        "title": "Trust",
+        "desc": "Trusted by UBA, MTN, HERO, NNPC, Seplat, and 500+ brands."
+      },
+      {
+        "icon": "💰",
+        "title": "Value",
+        "desc": "Bulk discounts for growing businesses."
+      },
+      {
+        "icon": "🛠️",
+        "title": "Support",
+        "desc": "24/7 customer care and WhatsApp-first communication."
+      }
+    ],
+    "whoWeServeTitle": "Who We Serve",
+    "whoWeServe": [
+      "Solopreneurs & Micro Businesses",
+      "Small Business Owners",
+      "Growth Business Enterprises",
+      "Big Brands & Corporate Organizations"
+    ],
+    "ctaTitle": "Ready to Print?",
+    "ctaText": "Call us or chat on WhatsApp — we respond fast.",
+    "stats": [
+      {
+        "value": "500+",
+        "label": "Happy Clients"
+      },
+      {
+        "value": "5★",
+        "label": "Google Rating"
+      },
+      {
+        "value": "15+",
+        "label": "Years Experience"
+      },
+      {
+        "value": "24/7",
+        "label": "Support"
+      }
+    ],
+    "showStats": true
   }
 }
