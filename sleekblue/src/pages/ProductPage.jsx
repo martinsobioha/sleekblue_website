@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { ALL_PRODUCTS, getProductDetails, calcStickerPrice, getStickerPriceTable, STICKER_SIZE_PRICES } from '../data/products'
 import { PRODUCT_IMAGES, STICKER_SIZE_IMAGES } from '../data/productImages'
 import { useSEO } from '../hooks/useSEO'
+import { trackProductView } from '../hooks/useAnalytics'
 
 const thumbColors = ['#C8C8C8', '#B0B0B0', '#D0D0D0']
 
@@ -44,6 +45,7 @@ export default function ProductPage() {
   const [uploadedImages, setUploadedImages] = useState({})
   const [stickerImages, setStickerImages] = useState({})
   useEffect(() => {
+    trackProductView(baseProduct.slug, baseProduct.name)
     fetch(`/api/products/${baseProduct.slug}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setAdminOverride(data) })

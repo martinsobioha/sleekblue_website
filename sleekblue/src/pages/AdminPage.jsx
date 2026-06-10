@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.jpg'
 import { ALL_PRODUCTS, STICKER_SIZE_PRICES, getProductDetails } from '../data/products'
+import { AnalyticsView, ReportsView } from '../components/AdminAnalytics'
 
 const PRI = '#7B2FBE'
 const PRI_LIGHT = '#f0e8ff'
@@ -106,9 +107,13 @@ function LoginScreen({ onLogin }) {
 }
 
 // ─── Image Manager ────────────────────────────────────────────────────────────
+const DEFAULT_SLIDE_LABELS = ['Hero Slide 1', 'Hero Slide 2', 'Hero Slide 3', 'Hero Slide 4']
+
 function ImageManager({ token }) {
   const [tab, setTab] = useState('hero')
   const [heroSlides, setHeroSlides] = useState([])
+  const [hiddenDefaultSlides, setHiddenDefaultSlides] = useState([])
+  const [defaultSlidesMsg, setDefaultSlidesMsg] = useState('')
   const [heroUploading, setHeroUploading] = useState(false)
   const [heroMsg, setHeroMsg] = useState('')
   const [products, setProducts] = useState(ALL_PRODUCTS)
@@ -120,9 +125,22 @@ function ImageManager({ token }) {
   const [dragOverIdx, setDragOverIdx] = useState(null)
 
   useEffect(() => {
-    fetch('/api/hero').then(r => r.ok ? r.json() : {}).then(d => setHeroSlides(d.customSlides || []))
+    fetch('/api/hero').then(r => r.ok ? r.json() : {}).then(d => {
+      setHeroSlides(d.customSlides || [])
+      setHiddenDefaultSlides(d.hiddenDefaultSlides || [])
+    })
     fetch('/api/product-images').then(r => r.ok ? r.json() : {}).then(d => setProductImages(d))
   }, [])
+
+  async function toggleDefaultSlide(idx) {
+    const next = hiddenDefaultSlides.includes(idx)
+      ? hiddenDefaultSlides.filter(i => i !== idx)
+      : [...hiddenDefaultSlides, idx]
+    setHiddenDefaultSlides(next)
+    await fetch('/api/admin/hero/default-slides', { method: 'PUT', headers: authH(token), body: JSON.stringify({ hiddenDefaultSlides: next }) })
+    setDefaultSlidesMsg('✓ Saved')
+    setTimeout(() => setDefaultSlidesMsg(''), 2000)
+  }
 
   // ── Hero slide upload
   async function uploadHeroSlide(e) {
@@ -217,8 +235,41 @@ function ImageManager({ token }) {
             {heroMsg && <p style={{ fontSize: '12px', color: heroMsg.startsWith('✓') ? '#16a34a' : '#dc2626', margin: '8px 0 0', fontFamily: "'HubotSans',sans-serif" }}>{heroMsg}</p>}
           </Card>
 
+          {/* Default slides management — shown when no custom slides are uploaded */}
+          {heroSlides.length === 0 && (
+            <Card style={{ marginBottom: '16px', background: '#f8f8ff', border: '1.5px solid #e0d6f5' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>🖼️ Default Built-in Slides</h3>
+                {defaultSlidesMsg && <span style={{ fontSize: '12px', color: '#16a34a', fontFamily: "'HubotSans',sans-serif" }}>{defaultSlidesMsg}</span>}
+              </div>
+              <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>
+                Manage which default hero slides are shown. Hide or restore individual slides. Upload custom slides above to replace all defaults.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px' }}>
+                {DEFAULT_SLIDE_LABELS.map((label, i) => {
+                  const isHidden = hiddenDefaultSlides.includes(i)
+                  return (
+                    <div key={i} style={{ borderRadius: '10px', overflow: 'hidden', border: `2px solid ${isHidden ? '#f0f0f0' : PRI + '40'}`, opacity: isHidden ? 0.5 : 1, transition: 'all 0.2s' }}>
+                      <div style={{ background: isHidden ? '#f5f5f5' : PRI_LIGHT, padding: '14px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '28px', marginBottom: '4px' }}>🖼️</div>
+                        <p style={{ fontSize: '12px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>{label}</p>
+                        <p style={{ fontSize: '10px', color: '#aaa', margin: '2px 0 0', fontFamily: "'HubotSans',sans-serif" }}>Built-in slide</p>
+                      </div>
+                      <div style={{ padding: '8px 10px', background: '#fff', display: 'flex', gap: '6px' }}>
+                        <button onClick={() => toggleDefaultSlide(i)}
+                          style={{ flex: 1, background: isHidden ? '#16a34a' : '#fee2e2', color: isHidden ? '#fff' : '#dc2626', border: 'none', borderRadius: '6px', padding: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans',sans-serif" }}>
+                          {isHidden ? '✓ Restore' : '✗ Hide'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          )}
+
           {heroSlides.length === 0
-            ? <Card><p style={{ color: '#aaa', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>No custom slides uploaded yet. The default built-in slides will be used.</p></Card>
+            ? <div />
             : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
                 {heroSlides.map((url, i) => (
@@ -497,6 +548,8 @@ function Sidebar({ view, setView, counts, onLogout }) {
     { id: 'settings',       icon: '⚙️', label: 'Site Settings' },
     { id: 'acceptances',    icon: '📋', label: 'T&C Acceptances', badge: counts.acceptances },
     { id: 'security',       icon: '🔑', label: 'Security' },
+    { id: 'analytics',      icon: '📈', label: 'Analytics' },
+    { id: 'reports',        icon: '💰', label: 'Reports' },
   ]
   return (
     <div style={{ width: SIDEBAR_W, minHeight: '100vh', background: PRI, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -2259,6 +2312,8 @@ export default function AdminPage() {
             {view === 'settings'       && <SettingsView token={token} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'acceptances'    && <AcceptancesView acceptances={siteData.acceptances} />}
             {view === 'security'       && <SecurityView token={token} />}
+            {view === 'analytics'      && <AnalyticsView token={token} />}
+            {view === 'reports'        && <ReportsView token={token} />}
           </>
         )}
       </main>

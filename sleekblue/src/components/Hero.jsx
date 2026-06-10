@@ -5,20 +5,32 @@ import heroSlide1 from '@assets/HERO_SLIDE_1_1779922059065.jpg'
 import heroSlide2 from '@assets/HERO_SLIDE_2_1779922059065.jpg'
 import heroSlide3 from '@assets/HERO_SLIDE_3_1779922059066.jpg'
 
-const DEFAULT_SLIDES = [heroSlide0, heroSlide1, heroSlide2, heroSlide3]
+const ALL_DEFAULT_SLIDES = [heroSlide0, heroSlide1, heroSlide2, heroSlide3]
 const SLIDE_INTERVAL = 5000
 
 export default function Hero() {
   const [current, setCurrent] = useState(0)
-  const [slides, setSlides] = useState(DEFAULT_SLIDES)
+  const [slides, setSlides] = useState(ALL_DEFAULT_SLIDES)
   const [heroData, setHeroData] = useState({ headline: '', subheadline: '', btn1: '', btn2: '' })
+  const [usingCustom, setUsingCustom] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetch('/api/hero')
       .then(r => r.ok ? r.json() : {})
       .then(d => {
-        if (d.customSlides && d.customSlides.length > 0) setSlides(d.customSlides)
+        const hidden = d.hiddenDefaultSlides || []
+        const customSlides = d.customSlides || []
+
+        if (customSlides.length > 0) {
+          setSlides(customSlides)
+          setUsingCustom(true)
+        } else {
+          const visibleDefaults = ALL_DEFAULT_SLIDES.filter((_, i) => !hidden.includes(i))
+          setSlides(visibleDefaults.length > 0 ? visibleDefaults : ALL_DEFAULT_SLIDES)
+          setUsingCustom(false)
+        }
+
         setHeroData({
           headline:    d.headline    || '',
           subheadline: d.subheadline || '',
@@ -35,7 +47,9 @@ export default function Hero() {
     return () => clearInterval(timer)
   }, [slides.length])
 
-  const hasOverlay = heroData.headline || heroData.subheadline || heroData.btn1 || heroData.btn2
+  const hasText = heroData.headline || heroData.subheadline
+  const btn1Label = heroData.btn1 || 'Print Sticker'
+  const btn2Label = heroData.btn2 || 'Print Flex'
 
   return (
     <section style={{ position: 'relative', overflow: 'hidden', lineHeight: 0 }}>
@@ -50,45 +64,42 @@ export default function Hero() {
             style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: '520px' }}
           />
 
-          {/* Text overlay — only shown when custom text is set */}
-          {hasOverlay && (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', padding: '0 6%', zIndex: 5 }}>
-              {heroData.headline && (
-                <h1 style={{ color: '#fff', fontSize: 'clamp(22px, 4vw, 52px)', fontWeight: 900, margin: '0 0 12px', fontFamily: "'HubotSans', sans-serif", lineHeight: 1.15, textShadow: '0 2px 8px rgba(0,0,0,0.4)', maxWidth: '600px' }}>
-                  {heroData.headline}
-                </h1>
-              )}
-              {heroData.subheadline && (
-                <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(13px, 1.8vw, 20px)', margin: '0 0 24px', fontFamily: "'HubotSans', sans-serif", maxWidth: '500px', lineHeight: 1.5 }}>
-                  {heroData.subheadline}
-                </p>
-              )}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {heroData.btn1 && (
-                  <button onClick={() => navigate('/store/die-cut-stickers')}
-                    style={{ background: '#FF6B00', color: '#fff', border: 'none', borderRadius: '8px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans', sans-serif' " }}>
-                    {heroData.btn1}
-                  </button>
+          {/* Always-visible overlay with action buttons */}
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 5,
+            background: hasText ? 'rgba(0,0,0,0.45)' : 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.0) 55%)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: hasText ? 'center' : 'flex-end',
+            padding: hasText ? '0 6%' : '0 5% 9%',
+          }}>
+            {hasText && (
+              <>
+                {heroData.headline && (
+                  <h1 style={{ color: '#fff', fontSize: 'clamp(22px, 4vw, 52px)', fontWeight: 900, margin: '0 0 12px', fontFamily: "'HubotSans', sans-serif", lineHeight: 1.15, textShadow: '0 2px 8px rgba(0,0,0,0.4)', maxWidth: '600px' }}>
+                    {heroData.headline}
+                  </h1>
                 )}
-                {heroData.btn2 && (
-                  <button onClick={() => navigate('/store/flex-banner')}
-                    style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '2px solid rgba(255,255,255,0.8)', borderRadius: '8px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans', sans-serif" }}>
-                    {heroData.btn2}
-                  </button>
+                {heroData.subheadline && (
+                  <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(13px, 1.8vw, 20px)', margin: '0 0 24px', fontFamily: "'HubotSans', sans-serif", maxWidth: '500px', lineHeight: 1.5 }}>
+                    {heroData.subheadline}
+                  </p>
                 )}
-              </div>
-            </div>
-          )}
+              </>
+            )}
 
-          {/* Transparent click-capture areas over baked-in buttons (only when no custom overlay) */}
-          {!hasOverlay && (
-            <>
-              <div onClick={() => navigate('/store/die-cut-stickers')} title="Print Sticker"
-                style={{ position: 'absolute', left: '5%', bottom: '27%', width: '17%', height: '9%', cursor: 'pointer', background: 'transparent', zIndex: 10 }} />
-              <div onClick={() => navigate('/store/flex-banner')} title="Print Flex"
-                style={{ position: 'absolute', left: '23%', bottom: '27%', width: '16%', height: '9%', cursor: 'pointer', background: 'transparent', zIndex: 10 }} />
-            </>
-          )}
+            {/* Always show action buttons */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button onClick={() => navigate('/store/die-cut-stickers')}
+                style={{ background: '#FF6B00', color: '#fff', border: 'none', borderRadius: '8px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans', sans-serif", boxShadow: '0 2px 12px rgba(0,0,0,0.25)' }}>
+                {btn1Label}
+              </button>
+              <button onClick={() => navigate('/store/flex-banner')}
+                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '2px solid rgba(255,255,255,0.85)', borderRadius: '8px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans', sans-serif", backdropFilter: 'blur(4px)' }}>
+                {btn2Label}
+              </button>
+            </div>
+          </div>
         </div>
       ))}
 

@@ -1,3 +1,4 @@
 - [Sleekblue stack and admin](sleekblue-stack.md) — React 19+Vite (port 5000), Express 5 (port 3001), flat-file site-data.json, JWT auth, admin at /sbm-control-2026
 - [SEO architecture](sleekblue-seo.md) — useSEO hook in src/hooks/useSEO.js; admin manages per-page SEO via /api/seo + /api/admin/seo; applied to all pages
 - [Sticker image uploads](sleekblue-sticker-images.md) — Server sticker images stored in stickerImages[size] in site-data.json; endpoints /api/sticker-images + /api/admin/upload/sticker-image; ProductPage merges server images with static fallback
+- [Analytics and security layer](sleekblue-analytics.md) — useAnalytics.js hook (track/trackPageView/trackProductView/trackCartAdd/trackQuoteRequest); POST /api/analytics/track; GET /api/admin/analytics; analytics-data.json; helmet+express-rate-limit on server; AdminAnalytics.jsx exports AnalyticsView+ReportsView; admin sidebar has Analytics+Reports entries

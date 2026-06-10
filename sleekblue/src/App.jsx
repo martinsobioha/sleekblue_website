@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { trackPageView } from './hooks/useAnalytics'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import SocialSidebar from './components/SocialSidebar'
@@ -29,9 +30,16 @@ function PageLoader() {
   )
 }
 
+function PageTracker() {
+  const location = useLocation()
+  useEffect(() => { trackPageView(location.pathname) }, [location.pathname])
+  return null
+}
+
 function MainSite() {
   return (
     <CartProvider>
+      <PageTracker />
       <TermsModal />
       <Navbar />
       <SocialSidebar />

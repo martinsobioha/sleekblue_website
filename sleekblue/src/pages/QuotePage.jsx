@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ALL_PRODUCTS } from '../data/products'
 import { useSEO } from '../hooks/useSEO'
+import { trackQuoteRequest } from '../hooks/useAnalytics'
 
 export default function QuotePage() {
   useSEO('quote', { title: 'Request a Quote — Sleekblue Media Houz', description: 'Get a fast custom quote for your printing order — die-cut stickers, flex banners, business cards and more. We respond via WhatsApp within minutes.' })
@@ -9,6 +10,7 @@ export default function QuotePage() {
 
   function handleSubmit(e) {
     e.preventDefault()
+    trackQuoteRequest(form.product, { quantity: form.quantity, details: form.details })
     const msg = encodeURIComponent(
       `📋 *QUOTE REQUEST - Sleekblue Media Houz*\n\n` +
       `Name: ${form.name}\n` +

@@ -350,6 +350,39 @@
         "Custom"
       ],
       "variantPrices": null
+    },
+    "rollup-stand": {
+      "name": "Rollup Stand",
+      "category": "Flex Printing/Large Format",
+      "badge": "Event Ready",
+      "description": "Portable rollup banner stands for trade shows, exhibitions, offices, and events. Print-ready, easy to set up.",
+      "features": [
+        "Retractable aluminium stand",
+        "High-resolution print",
+        "85cm wide standard size",
+        "Carry bag included",
+        "Full-colour gradient-friendly",
+        "Setup in under 60 seconds"
+      ],
+      "priceTable": [
+        {
+          "qty": 1,
+          "unitPrice": 50000
+        },
+        {
+          "qty": 3,
+          "unitPrice": 50000
+        },
+        {
+          "qty": 5,
+          "unitPrice": 48000
+        }
+      ],
+      "sizes": [
+        "85cm Standard",
+        "100cm Wide"
+      ],
+      "variantPrices": null
     }
   },
   "stickerPriceOverrides": {},

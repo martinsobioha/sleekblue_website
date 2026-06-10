@@ -61,9 +61,6 @@ export default function Reviews() {
             </a>
           )}
         </div>
-        <p style={{ fontSize: '12px', color: '#aaa', marginTop: '16px', fontFamily: "'HubotSans', sans-serif" }}>
-          Add your customer reviews in the Admin Panel → Content CMS → Reviews
-        </p>
       </section>
     )
   }

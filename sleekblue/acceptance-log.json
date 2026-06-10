@@ -68,5 +68,15 @@
     "phone": "08012345678",
     "ipAddress": "45.233.112.174",
     "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36; Manus-User/1.0"
+  },
+  {
+    "acceptanceId": "SBM-1781117705886-E2LAX",
+    "timestamp": "2026-06-10T18:55:05.886Z",
+    "termsVersion": "June 2026",
+    "customerName": "default 8256",
+    "email": "default8256@gmail.com",
+    "phone": "08037321545",
+    "ipAddress": "105.127.14.194",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
   }
 ]
