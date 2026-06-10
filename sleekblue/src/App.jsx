@@ -17,6 +17,7 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
 const QuotePage    = lazy(() => import('./pages/QuotePage'))
 const AboutPage    = lazy(() => import('./pages/AboutPage'))
 const BlogPage     = lazy(() => import('./pages/BlogPage'))
+const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
 const AdminPage    = lazy(() => import('./pages/AdminPage'))
 
 function PageLoader() {
@@ -45,6 +46,7 @@ function MainSite() {
             <Route path="/quote"       element={<QuotePage />} />
             <Route path="/about"       element={<AboutPage />} />
             <Route path="/blog"        element={<BlogPage />} />
+            <Route path="/blog/:slug"  element={<BlogPostPage />} />
           </Routes>
         </Suspense>
       </main>

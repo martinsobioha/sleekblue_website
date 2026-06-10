@@ -103,7 +103,79 @@
         "4x8ft",
         "6x8ft",
         "Custom"
-      ]
+      ],
+      "variantPrices": {
+        "3x6ft": [
+          {
+            "qty": 1,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 5,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 10,
+            "unitPrice": 3240
+          }
+        ],
+        "4x6ft": [
+          {
+            "qty": 1,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 5,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 10,
+            "unitPrice": 3240
+          }
+        ],
+        "4x8ft": [
+          {
+            "qty": 1,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 5,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 15,
+            "unitPrice": 3240
+          }
+        ],
+        "6x8ft": [
+          {
+            "qty": 1,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 5,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 10,
+            "unitPrice": 3240
+          }
+        ],
+        "Custom": [
+          {
+            "qty": 1,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 5,
+            "unitPrice": 3240
+          },
+          {
+            "qty": 10,
+            "unitPrice": 3240
+          }
+        ]
+      }
     },
     "billboard": {
       "name": "Billboard",
@@ -300,9 +372,6 @@
     ]
   },
   "hero": {
-    "customSlides": [
-      "/uploads/hero/1781048297473.jpg",
-      "/uploads/hero/1781048332832.jpg"
-    ]
+    "customSlides": []
   }
 }

@@ -1,0 +1,40 @@
+PROJECT: Sleekblue Media Houz Staging
+
+STATUS: Ready for Developer Assignment
+
+PRIORITY TICKETS:
+Ticket ID: DEV-001
+Category: Layout & Responsiveness
+Title: Fix Mobile Horizontal Scroll Layout Defect
+Priority: Critical
+Issue Description: The website breaks layout boundaries on smaller viewports, causing a horizontal scroll. Fixed pixel widths (min-width or width set in px) are overriding fluid constraints.
+Action Required: Remove all fixed pixel widths on major containers. Ensure outer wrappers utilize fluid relative units and proper box-sizing.
+Code Fix Snippet: .section-container, .wrapper { width: 100%; max-width: 1200px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; box-sizing: border-box; }
+Ticket ID: DEV-002
+Category: Navigation & Routing
+Title: Repair Dead Links and Placeholder Anchors
+Priority: High
+Issue Description: Multiple interactive elements, footer links, and call-to-action buttons are configured with empty anchors (href="#") or unmapped routes, resulting in dead clicks.
+Action Required: Replace all dead placeholders with valid relative path strings, real URLs, or configure appropriate section anchor IDs.
+Code Fix Snippet: Our Services
+Ticket ID: DEV-003
+Category: Performance & SEO
+Title: Compress Portfolio Images and Add Alt Attributes
+Priority: High
+Issue Description: High-resolution image payloads are degrading performance scores and delaying the Largest Contentful Paint (LCP) metric. Missing image descriptions hurt SEO accessibility.
+Action Required: Convert raw images to next-gen formats (.webp/.avif), apply explicit dimension attributes to prevent layout shifts, and write descriptive alt text.
+Code Fix Snippet: 
+Ticket ID: DEV-004
+Category: Design & Accessibility
+Title: Enhance Text Contrast Over Background Graphics
+Priority: Medium
+Issue Description: Light body text overlaying graphics or complex background patterns fails WCAG AA text legibility standards.
+Action Required: Apply a dark linear-gradient overlay mask behind text zones or increase the baseline font weight and contrast directly.
+Code Fix Snippet: .hero-background { background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('bg-image.webp'); background-size: cover; background-position: center; }
+Ticket ID: DEV-005
+Category: SEO Architecture
+Title: Restructure Document Headings Sequentially
+Priority: Medium
+Issue Description: Heading hierarchies skip non-sequentially across pages (e.g., jumping from h1 straight to h4), which degrades semantic HTML indexing for crawlers.
+Action Required: Restructure the document schema to follow a strict logical visual flow down the DOM tree.
+Code Fix Snippet: Ensure structural flow order goes: Main Title -> Section Topic -> Subsection Details

@@ -490,6 +490,8 @@ function Sidebar({ view, setView, counts, onLogout }) {
     { id: 'image-manager',  icon: '🖼️', label: 'Image Manager' },
     { id: 'products',       icon: '🛍️', label: 'Products',  badge: counts.products },
     { id: 'sticker-prices', icon: '🏷️', label: 'Sticker Prices' },
+    { id: 'blog',           icon: '✍️', label: 'Blog',       badge: counts.blogPosts || 0 },
+    { id: 'about',          icon: '📖', label: 'About Us' },
     { id: 'content',        icon: '🎨', label: 'Content CMS' },
     { id: 'settings',       icon: '⚙️', label: 'Site Settings' },
     { id: 'acceptances',    icon: '📋', label: 'T&C Acceptances', badge: counts.acceptances },
@@ -530,10 +532,15 @@ function Sidebar({ view, setView, counts, onLogout }) {
 function DashboardView({ siteData }) {
   const acceptances = siteData.acceptances || []
   const recent = [...acceptances].reverse().slice(0, 8)
+  const publishedPosts = (siteData.blogPosts || []).filter(p => p.status === 'published').length
+  const draftPosts = (siteData.blogPosts || []).filter(p => p.status === 'draft').length
   const stats = [
     { label: 'Total Products', value: ALL_PRODUCTS.length, icon: '🛍️', color: PRI },
     { label: 'T&C Acceptances', value: acceptances.length, icon: '📋', color: '#16a34a' },
+    { label: 'Published Blog Posts', value: publishedPosts, icon: '✍️', color: '#2563eb' },
+    { label: 'Draft Posts', value: draftPosts, icon: '📝', color: '#f59e0b' },
     { label: 'Products with Overrides', value: Object.keys(siteData.productOverrides || {}).length, icon: '✏️', color: ACC },
+    { label: 'Hero Slides', value: (siteData.heroSlides || 0), icon: '🖼️', color: '#ec4899' },
   ]
   return (
     <div>
@@ -1570,32 +1577,453 @@ function ContentView({ token, content, settings, onDataChanged }) {
   )
 }
 
+// ─── Blog CMS ─────────────────────────────────────────────────────────────────
+function BlogPostEditor({ token, post, onSaved, onCancel }) {
+  const isNew = !post?.id
+  const [form, setForm] = useState({
+    title: '', slug: '', status: 'draft', category: '', date: new Date().toISOString().split('T')[0],
+    excerpt: '', content: '', coverImage: '', tags: '', videoUrl: '', audioUrl: '', mediaFiles: [],
+    ...(post || {}),
+    tags: Array.isArray(post?.tags) ? post.tags.join(', ') : (post?.tags || ''),
+  })
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [msg, setMsg] = useState(null)
+
+  function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
+  function set(k, v) { setForm(p => ({ ...p, [k]: v })) }
+
+  async function uploadMedia(file, field) {
+    setUploading(true)
+    const fd = new FormData(); fd.append('file', file)
+    const res = await fetch('/api/admin/upload/blog', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+    const json = await res.json()
+    setUploading(false)
+    if (!json.url) return
+    if (field === 'coverImage') set('coverImage', json.url)
+    else if (field === 'audioUrl') set('audioUrl', json.url)
+    else set('mediaFiles', [...(form.mediaFiles || []), json.url])
+  }
+
+  async function handleSave(statusOverride) {
+    setSaving(true); setMsg(null)
+    const payload = {
+      ...form,
+      status: statusOverride || form.status,
+      tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      slug: form.slug || slugify(form.title),
+    }
+    const url = isNew ? '/api/admin/blog' : `/api/admin/blog/${post.id}`
+    const method = isNew ? 'POST' : 'PUT'
+    const res = await fetch(url, { method, headers: authH(token), body: JSON.stringify(payload) })
+    const data = await res.json()
+    setSaving(false)
+    if (!res.ok) { setMsg({ type: 'error', text: data.error || 'Failed to save.' }); return }
+    setMsg({ type: 'success', text: statusOverride === 'published' ? '✓ Post published!' : '✓ Saved as draft.' })
+    setTimeout(() => { onSaved(); }, 1200)
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+        <Btn variant="ghost" onClick={onCancel} style={{ padding: '7px 14px' }}>← Back</Btn>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>
+          {isNew ? '✍️ New Blog Post' : '✏️ Edit Post'}
+        </h2>
+        {!isNew && <Badge color={form.status === 'published' ? '#16a34a' : '#f59e0b'}>{form.status === 'published' ? 'Published' : 'Draft'}</Badge>}
+      </div>
+      {msg && <div style={{ padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', background: msg.type === 'error' ? '#fee2e2' : '#dcfce7', color: msg.type === 'error' ? '#dc2626' : '#16a34a', fontSize: '13px', fontFamily: "'HubotSans',sans-serif" }}>{msg.text}</div>}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Card>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Post Details</h3>
+            <Input label="Post Title *" value={form.title} onChange={e => { set('title', e.target.value); if (!post?.slug) set('slug', slugify(e.target.value)) }} placeholder="Enter a compelling title…" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <Input label="URL Slug" value={form.slug} onChange={e => set('slug', slugify(e.target.value))} placeholder="url-friendly-slug" />
+              <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Branding Tips" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <Input label="Date" type="date" value={form.date} onChange={e => set('date', e.target.value)} />
+              <Input label="Tags (comma separated)" value={form.tags} onChange={e => set('tags', e.target.value)} placeholder="stickers, branding, tips" />
+            </div>
+            <Input label="Excerpt / Summary" value={form.excerpt} onChange={e => set('excerpt', e.target.value)} rows={3} placeholder="A short summary that appears on the blog list page…" />
+          </Card>
+        </div>
+
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Card>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Content</h3>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '10px', fontFamily: "'HubotSans',sans-serif" }}>Write your full blog post content below. Use double line breaks for new paragraphs.</p>
+            <textarea value={form.content} onChange={e => set('content', e.target.value)} rows={16} placeholder="Write your full blog post here…"
+              style={{ width: '100%', padding: '12px', border: '1.5px solid #ddd', borderRadius: '8px', fontSize: '14px', fontFamily: "'HubotSans',sans-serif", outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7, color: '#333' }} />
+          </Card>
+        </div>
+
+        <Card>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Cover Image</h3>
+          {form.coverImage && (
+            <div style={{ marginBottom: '12px', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
+              <img src={form.coverImage} alt="Cover" style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', display: 'block' }} />
+              <button onClick={() => set('coverImage', '')} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>×</button>
+            </div>
+          )}
+          <label style={{ display: 'block', cursor: 'pointer' }}>
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && uploadMedia(e.target.files[0], 'coverImage')} />
+            <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '18px', textAlign: 'center', background: '#fafafa', cursor: 'pointer' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>🖼️</div>
+              <p style={{ fontSize: '12px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>{uploading ? 'Uploading…' : 'Click to upload cover image'}</p>
+            </div>
+          </label>
+          <Input label="Or enter image URL" value={form.coverImage} onChange={e => set('coverImage', e.target.value)} placeholder="https://…" style={{ marginTop: '10px' }} />
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Media Files</h3>
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>Upload additional images that appear in a gallery at the bottom of the post.</p>
+          {form.mediaFiles?.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '12px' }}>
+              {form.mediaFiles.map((url, i) => (
+                <div key={i} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1' }}>
+                  <img src={url} alt={`Media ${i+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <button onClick={() => set('mediaFiles', form.mediaFiles.filter((_, idx) => idx !== i))}
+                    style={{ position: 'absolute', top: '3px', right: '3px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: 0 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label style={{ display: 'block', cursor: 'pointer' }}>
+            <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => Array.from(e.target.files).forEach(f => uploadMedia(f, 'media'))} />
+            <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '14px', textAlign: 'center', background: '#fafafa', cursor: 'pointer' }}>
+              <p style={{ fontSize: '12px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>⬆ Upload images (select multiple)</p>
+            </div>
+          </label>
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Video</h3>
+          <Input label="YouTube URL or direct video URL" value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} placeholder="https://youtube.com/watch?v=…" />
+          {form.videoUrl && <p style={{ fontSize: '11px', color: '#16a34a', fontFamily: "'HubotSans',sans-serif", margin: '-8px 0 0' }}>✓ Video will be embedded in the post</p>}
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Audio</h3>
+          {form.audioUrl && (
+            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#f5f0ff', borderRadius: '6px', padding: '8px 12px' }}>
+              <span style={{ fontSize: '12px', color: PRI, fontFamily: "'HubotSans',sans-serif", flex: 1 }}>🎙️ Audio uploaded</span>
+              <button onClick={() => set('audioUrl', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '14px' }}>×</button>
+            </div>
+          )}
+          <label style={{ display: 'block', cursor: 'pointer', marginBottom: '10px' }}>
+            <input type="file" accept="audio/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && uploadMedia(e.target.files[0], 'audioUrl')} />
+            <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '14px', textAlign: 'center', background: '#fafafa', cursor: 'pointer' }}>
+              <p style={{ fontSize: '12px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>🎙️ Upload audio file (MP3, WAV…)</p>
+            </div>
+          </label>
+          <Input label="Or enter audio URL" value={form.audioUrl} onChange={e => set('audioUrl', e.target.value)} placeholder="https://…" />
+        </Card>
+      </div>
+
+      {/* Action bar */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #eee', flexWrap: 'wrap' }}>
+        <Btn onClick={() => handleSave('published')} disabled={saving} style={{ background: '#16a34a', minWidth: '160px' }}>
+          {saving ? 'Saving…' : '🚀 Publish Post'}
+        </Btn>
+        <Btn variant="ghost" onClick={() => handleSave('draft')} disabled={saving}>
+          💾 Save as Draft
+        </Btn>
+        <Btn variant="ghost" onClick={onCancel}>Cancel</Btn>
+      </div>
+    </div>
+  )
+}
+
+function BlogView({ token, posts, onDataChanged }) {
+  const [editing, setEditing] = useState(null)
+  const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(null)
+  const [dragOver, setDragOver] = useState(null)
+  const [localPosts, setLocalPosts] = useState(posts || [])
+
+  useEffect(() => { setLocalPosts(posts || []) }, [posts])
+
+  async function handleDelete(id) {
+    if (!confirm('Delete this blog post? This cannot be undone.')) return
+    setDeleting(id)
+    await fetch(`/api/admin/blog/${id}`, { method: 'DELETE', headers: authH(token) })
+    setDeleting(null)
+    onDataChanged()
+  }
+
+  async function handleReorder(newOrder) {
+    setLocalPosts(newOrder)
+    await fetch('/api/admin/blog/reorder', { method: 'PUT', headers: authH(token), body: JSON.stringify({ posts: newOrder }) })
+    onDataChanged()
+  }
+
+  function handleDragStart(e, idx) { e.dataTransfer.setData('idx', idx) }
+  function handleDrop(e, dropIdx) {
+    const dragIdx = parseInt(e.dataTransfer.getData('idx'))
+    if (dragIdx === dropIdx) return
+    const reordered = [...localPosts]
+    const [moved] = reordered.splice(dragIdx, 1)
+    reordered.splice(dropIdx, 0, moved)
+    handleReorder(reordered)
+    setDragOver(null)
+  }
+
+  if (creating) return <BlogPostEditor token={token} post={null} onSaved={() => { setCreating(false); onDataChanged() }} onCancel={() => setCreating(false)} />
+  if (editing) return <BlogPostEditor token={token} post={editing} onSaved={() => { setEditing(null); onDataChanged() }} onCancel={() => setEditing(null)} />
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>Blog Manager</h2>
+          <p style={{ color: '#888', fontSize: '13px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>{localPosts.filter(p => p.status === 'published').length} published · {localPosts.filter(p => p.status === 'draft').length} drafts · Drag rows to reorder</p>
+        </div>
+        <Btn onClick={() => setCreating(true)}>✍️ New Blog Post</Btn>
+      </div>
+
+      {localPosts.length === 0 && (
+        <Card style={{ textAlign: 'center', padding: '60px 24px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '14px' }}>✍️</div>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a', marginBottom: '8px', fontFamily: "'HubotSans',sans-serif" }}>No blog posts yet</h3>
+          <p style={{ fontSize: '13px', color: '#888', marginBottom: '20px', fontFamily: "'HubotSans',sans-serif" }}>Create your first post to engage your audience and boost SEO.</p>
+          <Btn onClick={() => setCreating(true)}>✍️ Create First Post</Btn>
+        </Card>
+      )}
+
+      {localPosts.map((post, idx) => (
+        <div key={post.id} draggable onDragStart={e => handleDragStart(e, idx)} onDragOver={e => { e.preventDefault(); setDragOver(idx) }} onDrop={e => handleDrop(e, idx)} onDragLeave={() => setDragOver(null)}
+          style={{ background: '#fff', borderRadius: '10px', padding: '16px 18px', marginBottom: '10px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'grab', border: dragOver === idx ? `2px solid ${PRI}` : '2px solid transparent', transition: 'border 0.15s', flexWrap: 'wrap' }}>
+          {/* Drag handle */}
+          <div style={{ color: '#ccc', fontSize: '18px', flexShrink: 0, cursor: 'grab', userSelect: 'none' }}>⠿</div>
+          {/* Cover thumbnail */}
+          {post.coverImage
+            ? <img src={post.coverImage} alt="" style={{ width: '56px', height: '40px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }} />
+            : <div style={{ width: '56px', height: '40px', background: '#f0e8ff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>✍️</div>
+          }
+          <div style={{ flex: 1, minWidth: '120px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a', fontFamily: "'HubotSans',sans-serif" }}>{post.title || 'Untitled'}</span>
+              <Badge color={post.status === 'published' ? '#16a34a' : '#f59e0b'}>{post.status === 'published' ? 'Published' : 'Draft'}</Badge>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {post.category && <span style={{ fontSize: '11px', color: '#888', fontFamily: "'HubotSans',sans-serif" }}>{post.category}</span>}
+              {post.date && <span style={{ fontSize: '11px', color: '#aaa', fontFamily: "'HubotSans',sans-serif" }}>{post.date}</span>}
+              {post.videoUrl && <span style={{ fontSize: '11px', color: '#aaa' }}>🎬</span>}
+              {post.audioUrl && <span style={{ fontSize: '11px', color: '#aaa' }}>🎙️</span>}
+              {post.mediaFiles?.length > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>🖼️{post.mediaFiles.length}</span>}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <Btn variant="ghost" onClick={() => setEditing(post)} style={{ padding: '6px 14px', fontSize: '12px' }}>✏️ Edit</Btn>
+            <Btn variant="danger" onClick={() => handleDelete(post.id)} disabled={deleting === post.id} style={{ padding: '6px 14px', fontSize: '12px' }}>{deleting === post.id ? '…' : '🗑️'}</Btn>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── About Us Editor ──────────────────────────────────────────────────────────
+const ABOUT_DEF = {
+  heroTitle: 'About Sleekblue Media Houz', heroSubtitle: 'We print for the biggest brands — and yours is next.',
+  whoWeAreTitle: 'Who We Are', whoWeAre: 'Sleekblue Media Houz is a premium printing and corporate branding company dedicated to helping businesses of all sizes communicate their identity with clarity and confidence.',
+  missionTitle: 'Our Mission', mission: 'To deliver premium printing with zero stress — high quality output, fast turnaround, and reliable service.',
+  valuesTitle: 'What Sets Us Apart',
+  values: [
+    { icon: '🎯', title: 'Precision', desc: 'Every cut, every print is executed to exact specifications.' },
+    { icon: '⚡', title: 'Speed', desc: 'Fast turnaround without compromising on quality.' },
+    { icon: '💎', title: 'Quality', desc: 'Waterproof, durable materials that last and impress.' },
+    { icon: '🤝', title: 'Trust', desc: 'Trusted by UBA, MTN, HERO, NNPC, Seplat, and 500+ brands.' },
+    { icon: '💰', title: 'Value', desc: 'Bulk discounts for growing businesses.' },
+    { icon: '🛠️', title: 'Support', desc: '24/7 customer care and WhatsApp-first communication.' },
+  ],
+  whoWeServeTitle: 'Who We Serve',
+  whoWeServe: ['Solopreneurs & Micro Businesses', 'Small Business Owners', 'Growth Business Enterprises', 'Big Brands & Corporate Organizations'],
+  ctaTitle: 'Ready to Print?', ctaText: 'Call us or chat on WhatsApp — we respond fast.',
+  stats: [{ value: '500+', label: 'Happy Clients' }, { value: '5★', label: 'Google Rating' }, { value: '10+', label: 'Years Experience' }, { value: '24/7', label: 'Support' }],
+  showStats: true,
+}
+
+function AboutView({ token }) {
+  const [d, setD] = useState(ABOUT_DEF)
+  const [tab, setTab] = useState('hero')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/about').then(r => r.ok ? r.json() : null).then(data => {
+      if (data) setD({ ...ABOUT_DEF, ...data, values: data.values || ABOUT_DEF.values, whoWeServe: data.whoWeServe || ABOUT_DEF.whoWeServe, stats: data.stats || ABOUT_DEF.stats })
+    }).catch(() => {})
+  }, [])
+
+  function set(k, v) { setD(p => ({ ...p, [k]: v })) }
+  function updateValue(i, f, v) { const a = [...d.values]; a[i] = { ...a[i], [f]: v }; set('values', a) }
+  function removeValue(i) { set('values', d.values.filter((_, idx) => idx !== i)) }
+  function addValue() { set('values', [...d.values, { icon: '⭐', title: 'New Value', desc: 'Description here.' }]) }
+  function updateStat(i, f, v) { const a = [...d.stats]; a[i] = { ...a[i], [f]: v }; set('stats', a) }
+  function removeStat(i) { set('stats', d.stats.filter((_, idx) => idx !== i)) }
+  function updateServe(i, v) { const a = [...d.whoWeServe]; a[i] = v; set('whoWeServe', a) }
+  function removeServe(i) { set('whoWeServe', d.whoWeServe.filter((_, idx) => idx !== i)) }
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/about', { method: 'PUT', headers: authH(token), body: JSON.stringify(d) })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
+  }
+
+  const tabs = [
+    { id: 'hero', label: '🏠 Hero' },
+    { id: 'content', label: '📝 Content' },
+    { id: 'values', label: '⭐ Values' },
+    { id: 'serve', label: '👥 Who We Serve' },
+    { id: 'stats', label: '📊 Stats Bar' },
+    { id: 'cta', label: '📞 CTA' },
+  ]
+
+  return (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>About Us Page</h2>
+        <p style={{ color: '#888', fontSize: '13px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Edit every section of the About Us page. Click 🚀 Publish to go live.</p>
+      </div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: tab === t.id ? PRI : '#fff', color: tab === t.id ? '#fff' : '#555', fontWeight: tab === t.id ? 700 : 500, fontSize: '13px', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', fontFamily: "'HubotSans',sans-serif" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'hero' && (
+        <Card>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Hero Section</h3>
+          <Input label="Hero Title" value={d.heroTitle} onChange={e => set('heroTitle', e.target.value)} placeholder="About Sleekblue Media Houz" />
+          <Input label="Hero Subtitle" value={d.heroSubtitle} onChange={e => set('heroSubtitle', e.target.value)} rows={2} placeholder="We print for the biggest brands…" />
+        </Card>
+      )}
+
+      {tab === 'content' && (
+        <>
+          <Card style={{ marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Who We Are</h3>
+            <Input label="Section Title" value={d.whoWeAreTitle} onChange={e => set('whoWeAreTitle', e.target.value)} />
+            <Input label="Content" value={d.whoWeAre} onChange={e => set('whoWeAre', e.target.value)} rows={5} />
+          </Card>
+          <Card>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Our Mission</h3>
+            <Input label="Section Title" value={d.missionTitle} onChange={e => set('missionTitle', e.target.value)} />
+            <Input label="Content" value={d.mission} onChange={e => set('mission', e.target.value)} rows={4} />
+          </Card>
+        </>
+      )}
+
+      {tab === 'values' && (
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Values / What Sets Us Apart</h3>
+            <Btn onClick={addValue} style={{ padding: '6px 14px', fontSize: '12px' }}>+ Add Value</Btn>
+          </div>
+          <Input label="Section Title" value={d.valuesTitle} onChange={e => set('valuesTitle', e.target.value)} placeholder="What Sets Us Apart" />
+          {d.values.map((v, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 1fr 36px', gap: '10px', marginBottom: '10px', alignItems: 'flex-start', padding: '12px', background: '#fafafa', borderRadius: '8px', border: '1px solid #eee' }}>
+              <input value={v.icon} onChange={e => updateValue(i, 'icon', e.target.value)} style={{ padding: '8px 6px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '20px', textAlign: 'center', fontFamily: "'HubotSans',sans-serif" }} />
+              <input value={v.title} onChange={e => updateValue(i, 'title', e.target.value)} placeholder="Title" style={{ padding: '9px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+              <input value={v.desc} onChange={e => updateValue(i, 'desc', e.target.value)} placeholder="Description" style={{ padding: '9px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+              <button onClick={() => removeValue(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</button>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab === 'serve' && (
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Who We Serve</h3>
+            <Btn onClick={() => set('whoWeServe', [...d.whoWeServe, ''])} style={{ padding: '6px 14px', fontSize: '12px' }}>+ Add</Btn>
+          </div>
+          <Input label="Section Title" value={d.whoWeServeTitle} onChange={e => set('whoWeServeTitle', e.target.value)} />
+          {d.whoWeServe.map((s, i) => (
+            <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+              <input value={s} onChange={e => updateServe(i, e.target.value)} style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+              <button onClick={() => removeServe(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</button>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab === 'stats' && (
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Stats Bar</h3>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#555', fontFamily: "'HubotSans',sans-serif", cursor: 'pointer' }}>
+                <input type="checkbox" checked={d.showStats} onChange={e => set('showStats', e.target.checked)} /> Show stats bar
+              </label>
+              <Btn onClick={() => set('stats', [...d.stats, { value: '0', label: 'New Stat' }])} style={{ padding: '6px 14px', fontSize: '12px' }}>+ Add Stat</Btn>
+            </div>
+          </div>
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Purple stats bar shown just below the hero banner.</p>
+          {d.stats.map((s, i) => (
+            <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
+              <input value={s.value} onChange={e => updateStat(i, 'value', e.target.value)} placeholder="500+" style={{ width: '100px', padding: '8px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none', fontWeight: 700 }} />
+              <input value={s.label} onChange={e => updateStat(i, 'label', e.target.value)} placeholder="Happy Clients" style={{ flex: 1, padding: '8px 10px', border: '1.5px solid #ddd', borderRadius: '6px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none' }} />
+              <button onClick={() => removeStat(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</button>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab === 'cta' && (
+        <Card>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '16px', fontFamily: "'HubotSans',sans-serif" }}>Call to Action Section</h3>
+          <Input label="CTA Title" value={d.ctaTitle} onChange={e => set('ctaTitle', e.target.value)} placeholder="Ready to Print?" />
+          <Input label="CTA Text" value={d.ctaText} onChange={e => set('ctaText', e.target.value)} rows={2} placeholder="Call us or chat on WhatsApp…" />
+          <p style={{ fontSize: '11px', color: '#888', fontFamily: "'HubotSans',sans-serif", marginTop: '-8px' }}>Phone and WhatsApp numbers are pulled from Site Settings → Contact Information.</p>
+        </Card>
+      )}
+
+      <SaveBar onSave={save} saving={saving} saved={saved} />
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem('sbm_admin_token') || '')
   const [view, setView] = useState('dashboard')
-  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {} })
+  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {}, blogPosts: [], heroSlides: 0 })
   const [loading, setLoading] = useState(false)
 
   const fetchAll = useCallback(async (tok = token) => {
     if (!tok) return
     setLoading(true)
     try {
-      const [dataRes, accRes, contentRes] = await Promise.all([
+      const [dataRes, accRes, contentRes, blogRes, heroRes] = await Promise.all([
         fetch('/api/admin/site-data', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/admin/acceptances', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/content'),
+        fetch('/api/admin/blog', { headers: { Authorization: `Bearer ${tok}` } }),
+        fetch('/api/hero'),
       ])
       if (dataRes.status === 401) { handleLogout(); return }
       const data = await dataRes.json()
       const acceptances = await accRes.json()
       const content = contentRes.ok ? await contentRes.json() : {}
+      const blogPosts = blogRes.ok ? await blogRes.json() : []
+      const heroData = heroRes.ok ? await heroRes.json() : {}
       setSiteData({
         settings:             data.settings             || {},
         productOverrides:     data.productOverrides     || {},
         stickerPriceOverrides:data.stickerPriceOverrides || {},
         acceptances:          Array.isArray(acceptances) ? acceptances : [],
         content,
+        blogPosts:            Array.isArray(blogPosts) ? blogPosts : [],
+        heroSlides:           (heroData.customSlides || []).length,
       })
     } catch {}
     setLoading(false)
@@ -1617,6 +2045,7 @@ export default function AdminPage() {
   const counts = {
     products: ALL_PRODUCTS.length,
     acceptances: siteData.acceptances.length,
+    blogPosts: (siteData.blogPosts || []).length,
   }
 
   return (
@@ -1633,6 +2062,8 @@ export default function AdminPage() {
             {view === 'image-manager'  && <ImageManager token={token} />}
             {view === 'products'       && <ProductsView token={token} productOverrides={siteData.productOverrides} onDataChanged={fetchAll} />}
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
+            {view === 'blog'           && <BlogView token={token} posts={siteData.blogPosts} onDataChanged={fetchAll} />}
+            {view === 'about'          && <AboutView token={token} />}
             {view === 'content'        && <ContentView token={token} content={siteData.content} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'settings'       && <SettingsView token={token} settings={siteData.settings} onDataChanged={fetchAll} />}
             {view === 'acceptances'    && <AcceptancesView acceptances={siteData.acceptances} />}

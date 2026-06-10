@@ -15,7 +15,7 @@ const ADMIN_CFG_FILE  = join(__dirname, 'admin-config.json')
 const UPLOADS_DIR     = join(__dirname, 'uploads')
 
 // Ensure upload directories exist
-;['hero', 'products', 'site'].forEach(sub =>
+;['hero', 'products', 'site', 'blog'].forEach(sub =>
   mkdirSync(join(UPLOADS_DIR, sub), { recursive: true })
 )
 
@@ -31,6 +31,7 @@ function makeStorage(folder) {
   })
 }
 const heroUpload    = multer({ storage: makeStorage('hero'),    limits: { fileSize: 10 * 1024 * 1024 } })
+const blogUpload    = multer({ storage: makeStorage('blog'),    limits: { fileSize: 50 * 1024 * 1024 } })
 const productUpload = multer({ storage: makeStorage('products'), limits: { fileSize: 10 * 1024 * 1024 } })
 const siteUpload    = multer({ storage: makeStorage('site'),    limits: { fileSize: 10 * 1024 * 1024 } })
 
@@ -404,6 +405,129 @@ app.post('/api/admin/upload/site', requireAuth, siteUpload.single('image'), (req
 app.get('/api/site-images', (req, res) => {
   const data = readJSON(SITE_DATA_FILE, {})
   res.json(data.siteImages || {})
+})
+
+// ── Public: About page ────────────────────────────────────────────────────────
+const ABOUT_DEFAULTS = {
+  heroTitle: 'About Sleekblue Media Houz',
+  heroSubtitle: 'We print for the biggest brands — and yours is next.',
+  whoWeAreTitle: 'Who We Are',
+  whoWeAre: 'Sleekblue Media Houz is a premium printing and corporate branding company dedicated to helping businesses of all sizes — from solopreneurs to big brands — communicate their identity with clarity and confidence. We specialize in die-cut stickers, flex printing, large format printing, corporate branding, and a wide range of promotional materials.',
+  missionTitle: 'Our Mission',
+  mission: 'To deliver premium printing with zero stress — high quality output, fast turnaround, and reliable service that empowers small businesses and enterprise brands alike to stand out in their market.',
+  valuesTitle: 'What Sets Us Apart',
+  values: [
+    { icon: '🎯', title: 'Precision', desc: 'Every cut, every print is executed to exact specifications.' },
+    { icon: '⚡', title: 'Speed', desc: 'Fast turnaround without compromising on quality.' },
+    { icon: '💎', title: 'Quality', desc: 'Waterproof, durable materials that last and impress.' },
+    { icon: '🤝', title: 'Trust', desc: 'Trusted by UBA, MTN, HERO, NNPC, Seplat, and 500+ brands.' },
+    { icon: '💰', title: 'Value', desc: 'Bulk discounts for growing businesses.' },
+    { icon: '🛠️', title: 'Support', desc: '24/7 customer care and WhatsApp-first communication.' },
+  ],
+  whoWeServeTitle: 'Who We Serve',
+  whoWeServe: ['Solopreneurs & Micro Businesses', 'Small Business Owners', 'Growth Business Enterprises', 'Big Brands & Corporate Organizations'],
+  ctaTitle: 'Ready to Print?',
+  ctaText: 'Call us or chat on WhatsApp — we respond fast.',
+  stats: [
+    { value: '500+', label: 'Happy Clients' },
+    { value: '5★', label: 'Google Rating' },
+    { value: '10+', label: 'Years Experience' },
+    { value: '24/7', label: 'Support' },
+  ],
+  showStats: true,
+}
+
+app.get('/api/about', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json({ ...ABOUT_DEFAULTS, ...(data.about || {}) })
+})
+
+app.put('/api/admin/about', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.about = { ...(data.about || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  res.json({ ok: true })
+})
+
+// ── Public: Blog ──────────────────────────────────────────────────────────────
+app.get('/api/blog', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  const posts = (data.blogPosts || []).filter(p => p.status === 'published')
+  res.json(posts)
+})
+
+app.get('/api/blog/:slug', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  const post = (data.blogPosts || []).find(p => p.slug === req.params.slug && p.status === 'published')
+  if (!post) return res.status(404).json({ error: 'Not found' })
+  res.json(post)
+})
+
+// ── Admin: Blog ───────────────────────────────────────────────────────────────
+app.get('/api/admin/blog', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.blogPosts || [])
+})
+
+app.post('/api/admin/blog', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.blogPosts = data.blogPosts || []
+  const post = {
+    id: generateId('POST'),
+    title: req.body.title || 'Untitled',
+    slug: req.body.slug || req.body.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || generateId('post'),
+    status: req.body.status || 'draft',
+    category: req.body.category || '',
+    date: req.body.date || new Date().toISOString().split('T')[0],
+    excerpt: req.body.excerpt || '',
+    content: req.body.content || '',
+    coverImage: req.body.coverImage || '',
+    tags: req.body.tags || [],
+    videoUrl: req.body.videoUrl || '',
+    audioUrl: req.body.audioUrl || '',
+    mediaFiles: req.body.mediaFiles || [],
+    order: data.blogPosts.length,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+  data.blogPosts.unshift(post)
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Blog post created:', post.id)
+  res.json({ ok: true, post })
+})
+
+app.put('/api/admin/blog/:id', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  const idx = (data.blogPosts || []).findIndex(p => p.id === req.params.id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  data.blogPosts[idx] = { ...data.blogPosts[idx], ...req.body, updatedAt: new Date().toISOString() }
+  writeJSON(SITE_DATA_FILE, data)
+  res.json({ ok: true, post: data.blogPosts[idx] })
+})
+
+app.delete('/api/admin/blog/:id', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.blogPosts = (data.blogPosts || []).filter(p => p.id !== req.params.id)
+  writeJSON(SITE_DATA_FILE, data)
+  res.json({ ok: true })
+})
+
+app.put('/api/admin/blog/reorder', requireAuth, (req, res) => {
+  const { posts } = req.body
+  if (!Array.isArray(posts)) return res.status(400).json({ error: 'posts must be array' })
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.blogPosts = posts
+  writeJSON(SITE_DATA_FILE, data)
+  res.json({ ok: true })
+})
+
+// Upload blog media (images, audio, video files)
+app.post('/api/admin/upload/blog', requireAuth, blogUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+  const url = `/uploads/blog/${req.file.filename}`
+  const type = req.file.mimetype.startsWith('audio/') ? 'audio' : req.file.mimetype.startsWith('video/') ? 'video' : 'image'
+  console.log('[Admin] Blog media uploaded:', url)
+  res.json({ ok: true, url, type })
 })
 
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))
