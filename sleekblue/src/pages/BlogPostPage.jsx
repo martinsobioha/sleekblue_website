@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { FaStar } from 'react-icons/fa'
 import { useSEO } from '../hooks/useSEO'
+import Breadcrumb from '../components/Breadcrumb'
 
 export default function BlogPostPage() {
   const { slug } = useParams()
@@ -24,6 +25,44 @@ export default function BlogPostPage() {
       .catch(() => { setNotFound(true); setLoading(false) })
   }, [slug])
 
+  useEffect(() => {
+    if (!post) return
+    const existing = document.getElementById('article-schema')
+    if (existing) existing.remove()
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: post.excerpt || '',
+      image: post.coverImage ? [`https://sleekbluemediahouz.com${post.coverImage}`] : [],
+      datePublished: post.date || new Date().toISOString(),
+      dateModified: post.updatedAt || post.date || new Date().toISOString(),
+      author: {
+        '@type': 'Organization',
+        name: 'Sleekblue Media Houz',
+        url: 'https://sleekbluemediahouz.com',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Sleekblue Media Houz',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://sleekbluemediahouz.com/sleekblue-logo.jpg',
+        },
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://sleekbluemediahouz.com/blog/${slug}`,
+      },
+    }
+    const tag = document.createElement('script')
+    tag.id = 'article-schema'
+    tag.type = 'application/ld+json'
+    tag.textContent = JSON.stringify(schema)
+    document.head.appendChild(tag)
+    return () => { const el = document.getElementById('article-schema'); if (el) el.remove() }
+  }, [post, slug])
+
   if (loading) return (
     <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '4px solid #e0d6f5', borderTopColor: '#7B2FBE', animation: 'spin 0.7s linear infinite' }} />
@@ -43,14 +82,11 @@ export default function BlogPostPage() {
   return (
     <article style={{ background: '#FAF3E8', minHeight: '100vh', padding: '48px 24px 80px', fontFamily: "'HubotSans', sans-serif" }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
-        {/* Breadcrumb */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '28px', fontSize: '13px', color: '#888' }}>
-          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>Home</Link>
-          <span>›</span>
-          <Link to="/blog" style={{ color: '#888', textDecoration: 'none' }}>Blog</Link>
-          <span>›</span>
-          <span style={{ color: '#555' }}>{post.title}</span>
-        </div>
+        <Breadcrumb crumbs={[
+          { label: 'Home', href: '/' },
+          { label: 'Blog', href: '/blog' },
+          { label: post.title },
+        ]} />
 
         {/* Cover image */}
         {post.coverImage && (

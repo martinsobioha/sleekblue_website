@@ -456,7 +456,7 @@ function ImageManager({ token }) {
 
           {(() => {
             const selProduct = products.find(p => p.slug === selectedSlug)
-            if (!selProduct || selProduct.isDieCut || !selProduct.sizes?.length) return null
+            if (!selProduct || !selProduct.sizes?.length) return null
             const slugVariants = selProduct.sizes
             const activeVariant = selectedVariant || slugVariants[0]
             const variantImgsForVariant = (variantImages[selectedSlug] || {})[activeVariant] || []

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
+import Breadcrumb from '../components/Breadcrumb'
 
 export default function BlogPage() {
   useSEO('blog', { title: 'Blog — Printing Tips & Business Ideas | Sleekblue', description: 'Read expert tips on branding, printing, and growing your business from the Sleekblue Media Houz team.' })
@@ -22,6 +23,10 @@ export default function BlogPage() {
   return (
     <section style={{ background: '#FAF3E8', minHeight: '100vh', padding: '48px 24px 80px' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <Breadcrumb crumbs={[
+          { label: 'Home', href: '/' },
+          { label: 'Blog' },
+        ]} />
         <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#1a1a1a', marginBottom: '8px', fontFamily: "'HubotSans', sans-serif" }}>Blog</h1>
         <p style={{ fontSize: '14px', color: '#777', marginBottom: '28px', fontFamily: "'HubotSans', sans-serif" }}>Tips, guides and insights from the Sleekblue team</p>
 
