@@ -1,6 +1,121 @@
 {
   "events": [
     {
+      "id": "EVT-1781820730252-GN1T6",
+      "type": "pageview",
+      "page": "/store",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T22:12:10.156Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
+      "id": "EVT-1781820730187-UBMBI",
+      "type": "pageview",
+      "page": "/store",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T22:12:10.143Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
+      "id": "EVT-1781820593857-U02UC",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://6777abf1-a7c6-4059-b023-3d8de7af3324-00-79sofyd8wghw.janeway.replit.dev/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T22:09:53.339Z",
+      "ip": "105.127.17.60",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781820593793-QZXHU",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://6777abf1-a7c6-4059-b023-3d8de7af3324-00-79sofyd8wghw.janeway.replit.dev/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T22:09:53.335Z",
+      "ip": "105.127.17.60",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781819962431-PP9EI",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://6777abf1-a7c6-4059-b023-3d8de7af3324-00-79sofyd8wghw.janeway.replit.dev/store/flex-banner",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T21:59:22.008Z",
+      "ip": "105.127.17.60",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
       "id": "EVT-1781819846084-PV5JR",
       "type": "pageview",
       "page": "/this-page-does-not-exist",

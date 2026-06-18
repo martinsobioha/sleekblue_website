@@ -5,6 +5,7 @@ import { ALL_PRODUCTS, getProductDetails, calcStickerPrice, getStickerPriceTable
 import { PRODUCT_IMAGES, STICKER_SIZE_IMAGES } from '../data/productImages'
 import { useSEO } from '../hooks/useSEO'
 import { trackProductView } from '../hooks/useAnalytics'
+import Breadcrumb from '../components/Breadcrumb'
 
 const thumbColors = ['#C8C8C8', '#B0B0B0', '#D0D0D0']
 
@@ -200,14 +201,7 @@ export default function ProductPage() {
     <section style={{ background: '#FAF3E8', padding: '28px 16px 50px', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
-        {/* Breadcrumb */}
-        <div style={{ fontSize: '12px', color: '#888', marginBottom: '16px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span onClick={() => navigate('/')} style={{ cursor: 'pointer', color: '#7B2FBE' }}>Home</span>
-          <span>›</span>
-          <span onClick={() => navigate('/store')} style={{ cursor: 'pointer', color: '#7B2FBE' }}>Store</span>
-          <span>›</span>
-          <span style={{ color: '#555' }}>{product.name}</span>
-        </div>
+        <Breadcrumb crumbs={[{ label: 'Home', href: '/' }, { label: 'Store', href: '/store' }, { label: product.name }]} />
 
         <div className="product-layout" style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: '20px', marginBottom: '40px', alignItems: 'start' }}>
 

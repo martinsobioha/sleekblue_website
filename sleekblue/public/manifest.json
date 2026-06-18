@@ -1,0 +1,45 @@
+{
+  "name": "Sleekblue Media Houz",
+  "short_name": "Sleekblue",
+  "description": "Premium printing & branding in Nigeria. Die-cut stickers, flex banners, business cards, corporate branding — fast delivery nationwide.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#7B2FBE",
+  "background_color": "#ffffff",
+  "categories": ["shopping", "business"],
+  "lang": "en-NG",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Die-Cut Stickers",
+      "short_name": "Stickers",
+      "description": "Order custom die-cut stickers",
+      "url": "/store/die-cut-stickers",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Request a Quote",
+      "short_name": "Quote",
+      "description": "Get a custom printing quote",
+      "url": "/quote",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Flex Banners",
+      "short_name": "Banners",
+      "description": "Order flex banner printing",
+      "url": "/store/flex-banner",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ]
+}

@@ -15,6 +15,7 @@ const LOG_FILE        = join(__dirname, 'acceptance-log.json')
 const SITE_DATA_FILE  = join(__dirname, 'site-data.json')
 const ADMIN_CFG_FILE  = join(__dirname, 'admin-config.json')
 const ANALYTICS_FILE  = join(__dirname, 'analytics-data.json')
+const LEADS_FILE      = join(__dirname, 'leads.json')
 const UPLOADS_DIR     = join(__dirname, 'uploads')
 
 ;['hero', 'products', 'site', 'blog'].forEach(sub =>
@@ -242,6 +243,32 @@ app.get('/api/products/:slug', (req, res) => {
 })
 
 // ── Analytics tracking (public) ───────────────────────────────────────────────
+app.post('/api/subscribe-whatsapp', (req, res) => {
+  const { name, phone } = req.body || {}
+  if (!phone || String(phone).replace(/\D/g, '').length < 10) {
+    return res.status(400).json({ error: 'Invalid phone number' })
+  }
+  const leads = readJSON(LEADS_FILE, [])
+  const existing = leads.find(l => l.phone.replace(/\D/g, '') === String(phone).replace(/\D/g, ''))
+  if (existing) return res.json({ ok: true, duplicate: true })
+  leads.push({ id: generateId('LEAD'), name: (name || '').trim(), phone: String(phone).trim(), timestamp: new Date().toISOString(), source: 'popup' })
+  writeJSON(LEADS_FILE, leads)
+  console.log('[Leads] New WhatsApp subscriber:', phone)
+  res.json({ ok: true })
+})
+
+app.get('/api/admin/leads', requireAuth, (req, res) => {
+  const leads = readJSON(LEADS_FILE, [])
+  res.json([...leads].reverse())
+})
+
+app.delete('/api/admin/leads/:id', requireAuth, (req, res) => {
+  const leads = readJSON(LEADS_FILE, [])
+  const updated = leads.filter(l => l.id !== req.params.id)
+  writeJSON(LEADS_FILE, updated)
+  res.json({ ok: true })
+})
+
 app.post('/api/analytics/track', (req, res) => {
   try {
     const { type, page, slug, name, qty, price, device, referrer, userAgent, timestamp, event: evName, target } = req.body

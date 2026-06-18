@@ -723,6 +723,7 @@ function Sidebar({ view, setView, counts, onLogout }) {
     { id: 'security',       icon: '🔑', label: 'Security' },
     { id: 'analytics',      icon: '📈', label: 'Analytics' },
     { id: 'reports',        icon: '💰', label: 'Reports' },
+    { id: 'leads',          icon: '📲', label: 'WA Leads', badge: counts.leads || 0 },
   ]
   return (
     <div style={{ width: SIDEBAR_W, minHeight: '100vh', background: PRI, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -2297,6 +2298,112 @@ function AboutView({ token }) {
 }
 
 // ─── SEO Manager ──────────────────────────────────────────────────────────────
+// ─── WhatsApp Leads ───────────────────────────────────────────────────────────
+function LeadsView({ token }) {
+  const [leads, setLeads] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/leads', { headers: authH(token) })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => { setLeads(Array.isArray(d) ? d : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  async function deleteLead(id) {
+    await fetch(`/api/admin/leads/${id}`, { method: 'DELETE', headers: authH(token) })
+    setLeads(prev => prev.filter(l => l.id !== id))
+  }
+
+  function exportCSV() {
+    const rows = [['Name', 'Phone', 'Date'], ...leads.map(l => [l.name || '', l.phone, new Date(l.timestamp).toLocaleDateString('en-NG')])]
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'sleekblue-wa-leads.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function copyAll() {
+    const text = leads.map(l => `${l.name ? l.name + ' — ' : ''}${l.phone}`).join('\n')
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500) })
+  }
+
+  function fmt(ts) {
+    try { return new Date(ts).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) } catch { return ts }
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px', fontFamily: "'HubotSans',sans-serif" }}>📲 WhatsApp Leads</h2>
+          <p style={{ color: '#888', fontSize: '13px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>Customers who subscribed via the WhatsApp deals popup</p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Btn onClick={copyAll} style={{ background: '#25D366', color: '#fff', fontWeight: 700, fontSize: '12px' }}>
+            {copied ? '✓ Copied!' : '📋 Copy All Numbers'}
+          </Btn>
+          <Btn onClick={exportCSV} style={{ background: PRI, color: '#fff', fontWeight: 700, fontSize: '12px' }}>
+            ⬇️ Export CSV
+          </Btn>
+        </div>
+      </div>
+
+      {loading ? (
+        <Card><p style={{ color: '#888', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>Loading…</p></Card>
+      ) : leads.length === 0 ? (
+        <Card style={{ textAlign: 'center', padding: '48px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
+          <p style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', margin: '0 0 8px', fontFamily: "'HubotSans',sans-serif" }}>No subscribers yet</p>
+          <p style={{ fontSize: '13px', color: '#888', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>The WhatsApp deals popup is live on your site. Subscribers will appear here.</p>
+        </Card>
+      ) : (
+        <>
+          <div style={{ background: '#f0fdf4', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #bbf7d0' }}>
+            <span style={{ fontSize: '24px' }}>📊</span>
+            <div>
+              <p style={{ fontSize: '16px', fontWeight: 800, color: '#16a34a', margin: '0 0 2px', fontFamily: "'HubotSans',sans-serif" }}>{leads.length} Subscriber{leads.length !== 1 ? 's' : ''}</p>
+              <p style={{ fontSize: '12px', color: '#555', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>You can broadcast deals to all these numbers on WhatsApp</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {leads.map((lead, i) => (
+              <Card key={lead.id || i} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👤</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '13.5px', fontWeight: 700, color: '#1a1a1a', margin: '0 0 2px', fontFamily: "'HubotSans',sans-serif" }}>
+                    {lead.name || <span style={{ color: '#aaa', fontWeight: 400 }}>No name</span>}
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#25D366', fontWeight: 600, margin: 0, fontFamily: "'HubotSans',sans-serif" }}>{lead.phone}</p>
+                </div>
+                <p style={{ fontSize: '11px', color: '#aaa', margin: 0, fontFamily: "'HubotSans',sans-serif", textAlign: 'right' }}>{fmt(lead.timestamp)}</p>
+                <a href={`https://wa.me/${lead.phone.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
+                  style={{ background: '#25D366', color: '#fff', borderRadius: '7px', padding: '6px 12px', fontSize: '12px', fontWeight: 700, textDecoration: 'none', fontFamily: "'HubotSans',sans-serif", flexShrink: 0 }}>
+                  💬 Chat
+                </a>
+                <button onClick={() => deleteLead(lead.id)}
+                  style={{ background: '#fef2f2', border: '1px solid #dc262620', borderRadius: '7px', padding: '6px 10px', cursor: 'pointer', color: '#dc2626', fontSize: '13px', flexShrink: 0 }}>🗑</button>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+
+      <Card style={{ marginTop: '16px', background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16a34a', marginBottom: '8px', fontFamily: "'HubotSans',sans-serif" }}>💡 How to use these leads</h3>
+        <ul style={{ fontSize: '12px', color: '#555', lineHeight: 1.8, paddingLeft: '18px', margin: 0, fontFamily: "'HubotSans',sans-serif" }}>
+          <li>Copy all numbers and paste into a WhatsApp broadcast list to send bulk deals</li>
+          <li>Export to CSV and import into a CRM or email tool</li>
+          <li>Directly chat with individual customers using the "Chat" button</li>
+          <li>The popup shows 18 seconds after visiting or after scrolling 35% down the page</li>
+        </ul>
+      </Card>
+    </div>
+  )
+}
+
 // ─── FAQ Manager ──────────────────────────────────────────────────────────────
 const DEFAULT_FAQ_ITEMS = [
   { question: 'What types of printing services does Sleekblue Media Houz offer?', answer: 'We offer a wide range of premium printing and branding services including die-cut stickers, flex banners, flyers & posters, business cards, rollup stands, T-shirts & caps, product labels, vehicle branding, signage & billboards, burial brochures, and corporate graphic design.' },
@@ -2544,19 +2651,20 @@ function SeoView({ token }) {
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem('sbm_admin_token') || '')
   const [view, setView] = useState('dashboard')
-  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {}, blogPosts: [], heroSlides: 0 })
+  const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {}, blogPosts: [], heroSlides: 0, leads: [] })
   const [loading, setLoading] = useState(false)
 
   const fetchAll = useCallback(async (tok = token) => {
     if (!tok) return
     setLoading(true)
     try {
-      const [dataRes, accRes, contentRes, blogRes, heroRes] = await Promise.all([
+      const [dataRes, accRes, contentRes, blogRes, heroRes, leadsRes] = await Promise.all([
         fetch('/api/admin/site-data', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/admin/acceptances', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/content'),
         fetch('/api/admin/blog', { headers: { Authorization: `Bearer ${tok}` } }),
         fetch('/api/hero'),
+        fetch('/api/admin/leads', { headers: { Authorization: `Bearer ${tok}` } }),
       ])
       if (dataRes.status === 401) { handleLogout(); return }
       const data = await dataRes.json()
@@ -2564,6 +2672,7 @@ export default function AdminPage() {
       const content = contentRes.ok ? await contentRes.json() : {}
       const blogPosts = blogRes.ok ? await blogRes.json() : []
       const heroData = heroRes.ok ? await heroRes.json() : {}
+      const leads = leadsRes.ok ? await leadsRes.json() : []
       setSiteData({
         settings:             data.settings             || {},
         productOverrides:     data.productOverrides     || {},
@@ -2572,6 +2681,7 @@ export default function AdminPage() {
         content,
         blogPosts:            Array.isArray(blogPosts) ? blogPosts : [],
         heroSlides:           (heroData.customSlides || []).length,
+        leads:                Array.isArray(leads) ? leads : [],
       })
     } catch {}
     setLoading(false)
@@ -2594,6 +2704,7 @@ export default function AdminPage() {
     products: ALL_PRODUCTS.length,
     acceptances: siteData.acceptances.length,
     blogPosts: (siteData.blogPosts || []).length,
+    leads: (siteData.leads || []).length,
   }
 
   return (
@@ -2620,6 +2731,7 @@ export default function AdminPage() {
             {view === 'security'       && <SecurityView token={token} />}
             {view === 'analytics'      && <AnalyticsView token={token} />}
             {view === 'reports'        && <ReportsView token={token} />}
+            {view === 'leads'          && <LeadsView token={token} />}
           </>
         )}
       </main>

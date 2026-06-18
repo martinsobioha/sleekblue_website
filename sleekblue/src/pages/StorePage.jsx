@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ALL_PRODUCTS } from '../data/products'
 import { PRODUCT_IMAGES } from '../data/productImages'
 import { useSEO } from '../hooks/useSEO'
+import Breadcrumb from '../components/Breadcrumb'
 
 export default function StorePage() {
   const navigate = useNavigate()
@@ -11,6 +12,7 @@ export default function StorePage() {
   return (
     <section style={{ background: '#FAF3E8', padding: '32px 16px 60px', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <Breadcrumb crumbs={[{ label: 'Home', href: '/' }, { label: 'Store' }]} />
         <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a1a', textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'HubotSans', sans-serif" }}>Our Store</h1>
         <p style={{ fontSize: '13px', color: '#777', marginBottom: '32px', fontWeight: 400 }}>Browse all our printing and branding products</p>
 

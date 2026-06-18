@@ -6,6 +6,7 @@ import Navbar from './components/Navbar'
 import SocialSidebar from './components/SocialSidebar'
 import ChatWidget from './components/ChatWidget'
 import WhatsAppFloat from './components/WhatsAppFloat'
+import WhatsAppLeadPopup from './components/WhatsAppLeadPopup'
 import TermsModal from './components/TermsModal'
 import Footer from './components/Footer'
 import './index.css'
@@ -63,6 +64,7 @@ function MainSite() {
       <Footer />
       <WhatsAppFloat />
       <ChatWidget />
+      <WhatsAppLeadPopup />
     </CartProvider>
   )
 }
