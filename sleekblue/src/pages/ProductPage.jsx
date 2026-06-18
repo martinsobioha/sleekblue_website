@@ -222,7 +222,7 @@ export default function ProductPage() {
 
           {/* CENTER — details & pricing */}
           <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', marginBottom: '4px', fontFamily: "'HubotSans', sans-serif" }}>{product.name}</h2>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', marginBottom: '4px', fontFamily: "'HubotSans', sans-serif" }}>{product.name}</h1>
             <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px', fontFamily: "'HubotSans', sans-serif" }}>{product.category}</p>
 
             {/* Size selector */}

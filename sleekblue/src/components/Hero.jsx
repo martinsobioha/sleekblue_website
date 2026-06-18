@@ -125,6 +125,12 @@ export default function Hero() {
           {/* DEFAULT / CUSTOM SLIDES WITHOUT TEXT — buttons at exact image-matching position */}
           {!hasText && (
             <>
+              {/* Visually-hidden H1 for SEO — only shown when no custom headline is set */}
+              {i === 0 && (
+                <h1 style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
+                  Sleekblue Media Houz — Premium Printing &amp; Corporate Branding in Nigeria
+                </h1>
+              )}
               {/* Subtle left-side gradient for button readability on any image */}
               <div style={{
                 position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none',

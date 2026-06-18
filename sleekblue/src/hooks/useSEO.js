@@ -13,25 +13,36 @@ function fetchSEO() {
   return seoPromise
 }
 
+function setMeta(name, content, attr = 'name') {
+  if (!content) return
+  let el = document.querySelector(`meta[${attr}="${name}"]`)
+  if (!el) { el = document.createElement('meta'); el.setAttribute(attr, name); document.head.appendChild(el) }
+  el.content = content
+}
+
 export function useSEO(pageKey, fallback = {}) {
   useEffect(() => {
     fetchSEO().then(seo => {
       const entry = seo[pageKey] || {}
-      const title = entry.title || fallback.title || 'Sleekblue Media Houz — Premium Printing. Zero Stress.'
-      const description = entry.description || fallback.description || 'Sleekblue Media Houz — Nigeria\'s top printing and branding company. Die-cut stickers, flex banners, corporate branding and more.'
-      const keywords = entry.keywords || fallback.keywords || ''
+      const title       = entry.title       || fallback.title       || 'Sleekblue Media Houz — Premium Printing. Zero Stress.'
+      const description = entry.description || fallback.description || "Sleekblue Media Houz — Nigeria's top printing and branding company in Owerri, Imo State. Die-cut stickers, flex banners, corporate branding and more."
+      const keywords    = entry.keywords    || fallback.keywords    || 'printing company Nigeria, die cut stickers Owerri, flex banner printing, corporate branding Nigeria'
 
       document.title = title
 
-      let metaDesc = document.querySelector('meta[name="description"]')
-      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc) }
-      metaDesc.content = description
+      // Standard meta
+      setMeta('description', description)
+      if (keywords) setMeta('keywords', keywords)
 
-      if (keywords) {
-        let metaKw = document.querySelector('meta[name="keywords"]')
-        if (!metaKw) { metaKw = document.createElement('meta'); metaKw.name = 'keywords'; document.head.appendChild(metaKw) }
-        metaKw.content = keywords
-      }
+      // Open Graph — updated dynamically per page
+      setMeta('og:title',       title,       'property')
+      setMeta('og:description', description, 'property')
+      setMeta('og:type',        'website',   'property')
+      setMeta('og:site_name',   'Sleekblue Media Houz', 'property')
+
+      // Twitter Card
+      setMeta('twitter:title',       title)
+      setMeta('twitter:description', description)
     })
   }, [pageKey])
 }
