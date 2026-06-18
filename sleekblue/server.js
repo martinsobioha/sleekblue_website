@@ -50,7 +50,9 @@ function generateId(prefix = 'SBM') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7).toUpperCase()}`
 }
 function getClientIP(req) {
-  return ((req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '') + '').split(',')[0].trim()
+  const raw = ((req.headers['x-forwarded-for'] || '') + '').split(',')[0].trim()
+    || (req.socket?.remoteAddress || '')
+  return raw.replace(/^::ffff:/, '')
 }
 
 // ── Analytics helpers ─────────────────────────────────────────────────────────
@@ -78,7 +80,8 @@ function logSecurityEvent(type, req) {
 // IP Geolocation — ip-api.com free tier (no key required)
 const geoCache = {}
 async function geolocateIP(ip) {
-  if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168') || ip.startsWith('10.') || ip.startsWith('172.')) {
+  if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('::ffff:') ||
+      ip.startsWith('192.168') || ip.startsWith('10.') || ip.startsWith('172.')) {
     return { country: 'Local', city: 'Dev Server', region: '', lat: 0, lon: 0 }
   }
   if (geoCache[ip]) return geoCache[ip]
@@ -301,6 +304,11 @@ app.get('/api/product-images', (req, res) => {
 app.get('/api/sticker-images', (req, res) => {
   const data = readJSON(SITE_DATA_FILE, {})
   res.json(data.stickerImages || {})
+})
+
+app.get('/api/product-variant-images', (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  res.json(data.productVariantImages || {})
 })
 
 app.get('/api/site-images', (req, res) => {
@@ -551,6 +559,36 @@ app.delete('/api/admin/sticker-image', requireAuth, (req, res) => {
   const data = readJSON(SITE_DATA_FILE, {})
   data.stickerImages = data.stickerImages || {}
   data.stickerImages[size] = (data.stickerImages[size] || []).filter(u => u !== url)
+  writeJSON(SITE_DATA_FILE, data)
+  try { const filename = url.replace('/uploads/products/', ''); unlinkSync(join(UPLOADS_DIR, 'products', filename)) } catch {}
+  res.json({ ok: true })
+})
+
+// ── Product variant images (per slug + per size/type) ─────────────────────────
+app.post('/api/admin/upload/product-variant/:slug', requireAuth, productUpload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+  const { slug } = req.params
+  const { variant } = req.body
+  if (!variant) return res.status(400).json({ error: 'variant is required' })
+  const url = `/uploads/products/${req.file.filename}`
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.productVariantImages = data.productVariantImages || {}
+  data.productVariantImages[slug] = data.productVariantImages[slug] || {}
+  data.productVariantImages[slug][variant] = data.productVariantImages[slug][variant] || []
+  data.productVariantImages[slug][variant].push(url)
+  writeJSON(SITE_DATA_FILE, data)
+  console.log('[Admin] Variant image uploaded:', slug, variant, url)
+  res.json({ ok: true, url })
+})
+
+app.delete('/api/admin/upload/product-variant/:slug', requireAuth, (req, res) => {
+  const { slug } = req.params
+  const { variant, url } = req.body
+  if (!variant || !url) return res.status(400).json({ error: 'variant and url required' })
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.productVariantImages = data.productVariantImages || {}
+  data.productVariantImages[slug] = data.productVariantImages[slug] || {}
+  data.productVariantImages[slug][variant] = (data.productVariantImages[slug][variant] || []).filter(u => u !== url)
   writeJSON(SITE_DATA_FILE, data)
   try { const filename = url.replace('/uploads/products/', ''); unlinkSync(join(UPLOADS_DIR, 'products', filename)) } catch {}
   res.json({ ok: true })

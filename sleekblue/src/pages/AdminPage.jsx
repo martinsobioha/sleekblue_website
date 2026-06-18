@@ -126,6 +126,10 @@ function ImageManager({ token }) {
   const [prodMsg, setProdMsg] = useState('')
   const [dragIdx, setDragIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const [variantImages, setVariantImages] = useState({})
+  const [selectedVariant, setSelectedVariant] = useState('')
+  const [variantUploading, setVariantUploading] = useState(false)
+  const [variantMsg, setVariantMsg] = useState('')
 
   useEffect(() => {
     fetch('/api/hero').then(r => r.ok ? r.json() : {}).then(d => {
@@ -135,6 +139,7 @@ function ImageManager({ token }) {
       setHiddenExtraDefaultSlides(d.hiddenExtraDefaultSlides || [])
     })
     fetch('/api/product-images').then(r => r.ok ? r.json() : {}).then(d => setProductImages(d))
+    fetch('/api/product-variant-images').then(r => r.ok ? r.json() : {}).then(d => setVariantImages(d))
   }, [])
 
   async function toggleDefaultSlide(idx) {
@@ -235,6 +240,31 @@ function ImageManager({ token }) {
     if (!confirm('Delete this product image?')) return
     await fetch(`/api/admin/upload/product/${slug}`, { method: 'DELETE', headers: authH(token), body: JSON.stringify({ url }) })
     setProductImages(prev => ({ ...prev, [slug]: (prev[slug] || []).filter(u => u !== url) }))
+  }
+
+  async function uploadVariantImage(e) {
+    const file = e.target.files[0]; if (!file || !selectedSlug || !selectedVariant) return
+    setVariantUploading(true); setVariantMsg('')
+    const fd = new FormData(); fd.append('image', file); fd.append('variant', selectedVariant)
+    const res = await fetch(`/api/admin/upload/product-variant/${selectedSlug}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+    const data = await res.json()
+    if (data.ok) {
+      setVariantImages(prev => ({
+        ...prev,
+        [selectedSlug]: { ...(prev[selectedSlug] || {}), [selectedVariant]: [...((prev[selectedSlug] || {})[selectedVariant] || []), data.url] }
+      }))
+      setVariantMsg('✓ Variant image uploaded!')
+    } else setVariantMsg('✗ Upload failed: ' + (data.error || ''))
+    setVariantUploading(false); e.target.value = ''
+  }
+
+  async function deleteVariantImage(slug, variant, url) {
+    if (!confirm('Delete this variant image?')) return
+    await fetch(`/api/admin/upload/product-variant/${slug}`, { method: 'DELETE', headers: authH(token), body: JSON.stringify({ variant, url }) })
+    setVariantImages(prev => ({
+      ...prev,
+      [slug]: { ...(prev[slug] || {}), [variant]: ((prev[slug] || {})[variant] || []).filter(u => u !== url) }
+    }))
   }
 
   const tabs = [
@@ -401,12 +431,13 @@ function ImageManager({ token }) {
           </Card>
 
           {selectedSlug && (
-            <Card>
-              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginBottom: '12px', fontFamily: "'HubotSans',sans-serif" }}>
-                Uploaded images for: <span style={{ color: PRI }}>{products.find(p => p.slug === selectedSlug)?.name}</span>
+            <Card style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginBottom: '4px', fontFamily: "'HubotSans',sans-serif" }}>
+                General images for: <span style={{ color: PRI }}>{products.find(p => p.slug === selectedSlug)?.name}</span>
               </h4>
+              <p style={{ fontSize: '11.5px', color: '#aaa', margin: '0 0 12px', fontFamily: "'HubotSans',sans-serif" }}>Shown when no size-specific image is uploaded. Acts as the default for all variants.</p>
               {!(productImages[selectedSlug]?.length)
-                ? <p style={{ color: '#aaa', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>No custom images uploaded for this product yet.</p>
+                ? <p style={{ color: '#aaa', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", margin: 0 }}>No general images uploaded yet.</p>
                 : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
                     {(productImages[selectedSlug] || []).map((url, i) => (
@@ -422,6 +453,66 @@ function ImageManager({ token }) {
               }
             </Card>
           )}
+
+          {(() => {
+            const selProduct = products.find(p => p.slug === selectedSlug)
+            if (!selProduct || selProduct.isDieCut || !selProduct.sizes?.length) return null
+            const slugVariants = selProduct.sizes
+            const activeVariant = selectedVariant || slugVariants[0]
+            const variantImgsForVariant = (variantImages[selectedSlug] || {})[activeVariant] || []
+            return (
+              <Card>
+                <h3 style={{ fontSize: '14px', fontWeight: 700, color: PRI, marginBottom: '4px', fontFamily: "'HubotSans',sans-serif" }}>📐 Variant / Type Images</h3>
+                <p style={{ fontSize: '12px', color: '#888', margin: '0 0 14px', fontFamily: "'HubotSans',sans-serif" }}>
+                  Upload a specific image for each size or type. These override the general product image when that variant is selected by the customer.
+                </p>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
+                  <select value={activeVariant}
+                    onChange={e => { setSelectedVariant(e.target.value); setVariantMsg('') }}
+                    style={{ padding: '9px 12px', border: `1.5px solid ${PRI}60`, borderRadius: '8px', fontSize: '13px', fontFamily: "'HubotSans',sans-serif", outline: 'none', minWidth: '200px', background: PRI_LIGHT }}>
+                    {slugVariants.map(v => (
+                      <option key={v} value={v}>{v} {((variantImages[selectedSlug] || {})[v] || []).length > 0 ? '✓' : ''}</option>
+                    ))}
+                  </select>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: PRI, color: '#fff', padding: '10px 18px', borderRadius: '8px', cursor: variantUploading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, fontFamily: "'HubotSans',sans-serif", opacity: variantUploading ? 0.7 : 1 }}>
+                    {variantUploading ? '⏳ Uploading…' : `⬆️ Upload for "${activeVariant}"`}
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { setSelectedVariant(activeVariant); uploadVariantImage(e) }} disabled={variantUploading} />
+                  </label>
+                </div>
+                {variantMsg && <p style={{ fontSize: '12px', color: variantMsg.startsWith('✓') ? '#16a34a' : '#dc2626', margin: '0 0 10px', fontFamily: "'HubotSans',sans-serif" }}>{variantMsg}</p>}
+
+                {variantImgsForVariant.length === 0
+                  ? <p style={{ color: '#bbb', fontSize: '12.5px', fontFamily: "'HubotSans',sans-serif', margin: 0" }}>No images for "{activeVariant}" yet — falls back to general product image.</p>
+                  : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
+                      {variantImgsForVariant.map((url, i) => (
+                        <div key={url} style={{ borderRadius: '10px', overflow: 'hidden', border: `2px solid ${PRI}40`, position: 'relative' }}>
+                          <img src={url} alt={`${activeVariant} ${i+1}`} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' }} />
+                          <button onClick={() => deleteVariantImage(selectedSlug, activeVariant, url)}
+                            style={{ position: 'absolute', top: '6px', right: '6px', background: '#dc2626', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', color: '#fff', fontWeight: 700, fontSize: '13px' }}>🗑</button>
+                          {i === 0 && <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: PRI, color: '#fff', borderRadius: '5px', padding: '2px 8px', fontSize: '10px', fontWeight: 700, fontFamily: "'HubotSans',sans-serif" }}>Main</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                }
+
+                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #eee' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#555', margin: '0 0 8px', fontFamily: "'HubotSans',sans-serif" }}>All variants overview:</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {slugVariants.map(v => {
+                      const count = ((variantImages[selectedSlug] || {})[v] || []).length
+                      return (
+                        <span key={v} onClick={() => setSelectedVariant(v)} style={{ cursor: 'pointer', background: count > 0 ? '#dcfce7' : '#f5f5f5', color: count > 0 ? '#16a34a' : '#888', border: `1px solid ${count > 0 ? '#16a34a40' : '#ddd'}`, borderRadius: '6px', padding: '4px 10px', fontSize: '11.5px', fontWeight: 600, fontFamily: "'HubotSans',sans-serif" }}>
+                          {v} {count > 0 ? `(${count})` : '—'}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              </Card>
+            )
+          })()}
         </div>
       )}
     </div>

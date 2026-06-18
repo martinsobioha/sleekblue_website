@@ -44,6 +44,7 @@ export default function ProductPage() {
   const [adminOverride, setAdminOverride] = useState(null)
   const [uploadedImages, setUploadedImages] = useState({})
   const [stickerImages, setStickerImages] = useState({})
+  const [variantImages, setVariantImages] = useState({})
   useEffect(() => {
     trackProductView(baseProduct.slug, baseProduct.name)
     fetch(`/api/products/${baseProduct.slug}`)
@@ -57,6 +58,10 @@ export default function ProductPage() {
     fetch('/api/sticker-images')
       .then(r => r.ok ? r.json() : {})
       .then(d => setStickerImages(d || {}))
+      .catch(() => {})
+    fetch('/api/product-variant-images')
+      .then(r => r.ok ? r.json() : {})
+      .then(d => setVariantImages(d || {}))
       .catch(() => {})
   }, [baseProduct.slug])
 
@@ -89,12 +94,13 @@ export default function ProductPage() {
     ? findNearestSize(customWidth, customHeight)
     : selectedSize
 
-  // Product images — uploaded images take priority; fall back to static
+  // Product images — variant-specific > product-level uploaded > static fallback
   const uploadedForSlug = uploadedImages[product.slug] || []
   const serverStickerImgs = stickerImages[effectiveSize] || []
+  const variantSpecificImgs = !isDieCut ? (variantImages[product.slug]?.[selectedSize] || []) : []
   const productImgs = isDieCut
     ? (serverStickerImgs.length > 0 ? serverStickerImgs : (STICKER_SIZE_IMAGES[effectiveSize] || []))
-    : (uploadedForSlug.length > 0 ? uploadedForSlug : (PRODUCT_IMAGES[product.slug] || []))
+    : (variantSpecificImgs.length > 0 ? variantSpecificImgs : (uploadedForSlug.length > 0 ? uploadedForSlug : (PRODUCT_IMAGES[product.slug] || [])))
   const hasImages = productImgs.length > 0
   const displayImgs = hasImages ? productImgs : null
 

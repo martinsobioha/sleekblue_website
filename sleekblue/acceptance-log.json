@@ -288,5 +288,25 @@
     "phone": "08012345678",
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36"
+  },
+  {
+    "acceptanceId": "SBM-1781817394854-CMB5T",
+    "timestamp": "2026-06-18T21:16:34.854Z",
+    "termsVersion": "June 2026",
+    "customerName": "Martins Obioha",
+    "email": "default8256@gmail.com",
+    "phone": "08033427367",
+    "ipAddress": "105.127.17.60",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  },
+  {
+    "acceptanceId": "SBM-1781817765862-EH0XO",
+    "timestamp": "2026-06-18T21:22:45.862Z",
+    "termsVersion": "June 2026",
+    "customerName": "Martins Obioha",
+    "email": "default8256@gmail.com",
+    "phone": "08033427367",
+    "ipAddress": "105.127.17.60",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
   }
 ]

@@ -140,6 +140,7 @@ export const PRODUCT_IMAGES = {
   'window-graphics':  [winGraphA, winGraphB, winGraphC, winGraphD, winGraphE],
   'umbrella':         [umbrellaB, umbrellaC, umbrellaD],
   'product-labels':   [sticker2x4A, sticker2x7A, sticker2x7B, sticker2x7C],
+  'reflective-flex':  [bannerA, bannerB, bannerC],
 }
 
 export const STICKER_SIZE_IMAGES = {
