@@ -1,6 +1,98 @@
 {
   "events": [
     {
+      "id": "EVT-1781816937063-O8WA7",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T21:08:57.036Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
+      "id": "EVT-1781816937032-C91Q1",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T21:08:57.024Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
+      "id": "EVT-1781816935541-NOQQS",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://6777abf1-a7c6-4059-b023-3d8de7af3324-00-79sofyd8wghw.janeway.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T21:08:54.879Z",
+      "ip": "105.127.17.60",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781816935286-7GCGS",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://6777abf1-a7c6-4059-b023-3d8de7af3324-00-79sofyd8wghw.janeway.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-18T21:08:54.869Z",
+      "ip": "105.127.17.60",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
       "id": "EVT-1781813916718-69RKB",
       "type": "pageview",
       "page": "/",
