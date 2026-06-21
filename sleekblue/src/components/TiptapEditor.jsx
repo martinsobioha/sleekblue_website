@@ -1,6 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
+import { Link } from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 
 const PRI = '#7B2FBE'
@@ -23,7 +23,7 @@ const BTN = ({ active, onClick, title, children }) => (
 export default function TiptapEditor({ value, onChange, placeholder = 'Start writing your post…', height = 420 }) {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
+      StarterKit.configure({ heading: { levels: [2, 3] }, link: false }),
       Link.configure({ openOnClick: false, HTMLAttributes: { class: 'tiptap-link' } }),
       Placeholder.configure({ placeholder }),
     ],

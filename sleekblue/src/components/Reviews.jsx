@@ -91,7 +91,7 @@ export default function Reviews() {
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         <style>{`
           @keyframes reviewMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .review-track { display: flex; width: max-content; animation: reviewMarquee 40s linear infinite; gap: 20px; padding: 8px 0; }
+          .review-track { display: flex; width: max-content; animation: reviewMarquee 20s linear infinite; gap: 20px; padding: 8px 0; }
           .review-track:hover { animation-play-state: paused; }
         `}</style>
         <div className="review-track">

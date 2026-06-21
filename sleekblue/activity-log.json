@@ -1,5 +1,19 @@
 [
   {
+    "id": "ACT-1782064549249-H8PCD",
+    "action": "promo_banner",
+    "detail": "enabled",
+    "user": "admin",
+    "timestamp": "2026-06-21T17:55:49.249Z"
+  },
+  {
+    "id": "ACT-1782064542228-S9NSW",
+    "action": "promo_banner",
+    "detail": "disabled",
+    "user": "admin",
+    "timestamp": "2026-06-21T17:55:42.228Z"
+  },
+  {
     "id": "ACT-1782055516225-V8S8M",
     "action": "comment_submitted",
     "detail": "frank commented on dvddgd",

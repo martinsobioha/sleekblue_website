@@ -10,6 +10,9 @@ export default function Footer() {
   const [tagline, setTagline]   = useState(DEFAULT_TAGLINE)
   const [services, setServices] = useState(DEFAULT_SERVICES)
   const [settings, setSettings] = useState({})
+  const [email, setEmail]       = useState('')
+  const [subStatus, setSubStatus] = useState(null)
+  const [subLoading, setSubLoading] = useState(false)
 
   useEffect(() => {
     fetch('/api/content')
@@ -28,8 +31,31 @@ export default function Footer() {
 
   const phone    = settings.phone    || '+234 806 527 5264'
   const whatsapp = settings.whatsapp || '2348065275264'
-  const email    = settings.email    || ''
+  const emailAddr  = settings.email  || ''
   const address  = settings.address  || 'Lagos, Nigeria'
+
+  async function handleSubscribe(e) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setSubLoading(true)
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      if (res.ok) {
+        setSubStatus('success')
+        setEmail('')
+      } else {
+        setSubStatus('error')
+      }
+    } catch {
+      setSubStatus('error')
+    }
+    setSubLoading(false)
+    setTimeout(() => setSubStatus(null), 4000)
+  }
 
   return (
     <footer style={{ background: '#1a0a2e', color: '#ccc', paddingTop: '48px', paddingBottom: '24px', fontFamily: "'HubotSans', sans-serif" }}>
@@ -83,9 +109,9 @@ export default function Footer() {
             <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '10px' }}>
               💬 <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ color: '#aaa', textDecoration: 'none' }}>WhatsApp Us</a>
             </p>
-            {email && (
+            {emailAddr && (
               <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '10px' }}>
-                ✉️ <a href={`mailto:${email}`} style={{ color: '#aaa', textDecoration: 'none' }}>{email}</a>
+                ✉️ <a href={`mailto:${emailAddr}`} style={{ color: '#aaa', textDecoration: 'none' }}>{emailAddr}</a>
               </p>
             )}
             <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '10px' }}>📍 {address}</p>
@@ -95,22 +121,45 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Newsletter Subscribe */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '32px', marginBottom: '28px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>Stay in the loop 📬</h4>
+              <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>Get offers, printing tips & updates delivered to your inbox.</p>
+            </div>
+            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: 1, maxWidth: '440px' }}>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                style={{ flex: 1, minWidth: '200px', padding: '11px 14px', borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '13px', fontFamily: "'HubotSans', sans-serif", outline: 'none' }}
+              />
+              <button
+                type="submit"
+                disabled={subLoading}
+                style={{ background: subLoading ? '#555' : '#7B2FBE', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 20px', fontSize: '13px', fontWeight: 700, cursor: subLoading ? 'not-allowed' : 'pointer', fontFamily: "'HubotSans', sans-serif', whiteSpace: 'nowrap'" }}
+              >
+                {subLoading ? 'Subscribing…' : 'Subscribe'}
+              </button>
+            </form>
+          </div>
+          {subStatus === 'success' && (
+            <p style={{ color: '#4ade80', fontSize: '13px', marginTop: '10px', fontWeight: 600 }}>✓ You're subscribed! Thanks for joining.</p>
+          )}
+          {subStatus === 'error' && (
+            <p style={{ color: '#f87171', fontSize: '13px', marginTop: '10px' }}>Something went wrong. Please try again.</p>
+          )}
+        </div>
+
         {/* Bottom bar */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
           <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
             © {year} Sleekblue Media Houz. All rights reserved.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <span style={{ fontSize: '12px', color: '#555' }}>Built with ❤️ in Nigeria</span>
-            <Link
-              to="/sbm-control-2026"
-              style={{ fontSize: '11px', color: '#444', textDecoration: 'none', padding: '4px 10px', border: '1px solid #333', borderRadius: '4px', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.target.style.color = '#FF6B00'; e.target.style.borderColor = '#FF6B00' }}
-              onMouseLeave={e => { e.target.style.color = '#444'; e.target.style.borderColor = '#333' }}
-            >
-              Admin
-            </Link>
-          </div>
+          <span style={{ fontSize: '12px', color: '#555' }}>Built with ❤️ in Nigeria</span>
         </div>
       </div>
     </footer>

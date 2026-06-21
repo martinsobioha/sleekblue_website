@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { trackPageView } from './hooks/useAnalytics'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
@@ -137,6 +137,7 @@ export default function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/sbm-control-2026" element={<AdminPage />} />
+          <Route path="/admin" element={<Navigate to="/sbm-control-2026" replace />} />
           <Route path="/*"     element={<MainSite />} />
         </Routes>
       </Suspense>

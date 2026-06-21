@@ -720,11 +720,11 @@
     "showStats": true
   },
   "promoBanner": {
-    "enabled": false,
+    "enabled": true,
     "text": "FREE DELIVERY WITHIN OWERRI",
     "link": "",
     "color": "#ffffff",
-    "bgColor": "#340dc5"
+    "bgColor": "#c50d0d"
   },
   "blogPosts": [
     {
