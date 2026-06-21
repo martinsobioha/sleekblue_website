@@ -1,0 +1,92 @@
+{
+  "hash": "1eeaf088",
+  "configHash": "ac4fe0f6",
+  "lockfileHash": "29dfb033",
+  "browserHash": "9453bb85",
+  "optimized": {
+    "@tiptap/extension-link": {
+      "src": "../../sleekblue/node_modules/@tiptap/extension-link/dist/index.js",
+      "file": "@tiptap_extension-link.js",
+      "fileHash": "80e96949",
+      "needsInterop": false
+    },
+    "@tiptap/extension-placeholder": {
+      "src": "../../sleekblue/node_modules/@tiptap/extension-placeholder/dist/index.js",
+      "file": "@tiptap_extension-placeholder.js",
+      "fileHash": "8c4780a7",
+      "needsInterop": false
+    },
+    "@tiptap/react": {
+      "src": "../../sleekblue/node_modules/@tiptap/react/dist/index.js",
+      "file": "@tiptap_react.js",
+      "fileHash": "54597b81",
+      "needsInterop": false
+    },
+    "@tiptap/starter-kit": {
+      "src": "../../sleekblue/node_modules/@tiptap/starter-kit/dist/index.js",
+      "file": "@tiptap_starter-kit.js",
+      "fileHash": "14c0e5ca",
+      "needsInterop": false
+    },
+    "react-dom": {
+      "src": "../../sleekblue/node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "ff4c6dca",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../sleekblue/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "bde30a69",
+      "needsInterop": true
+    },
+    "react-icons/fa": {
+      "src": "../../sleekblue/node_modules/react-icons/fa/index.mjs",
+      "file": "react-icons_fa.js",
+      "fileHash": "a82e5ecd",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../sleekblue/node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "63b03c9f",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../sleekblue/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "fd78fe6e",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../sleekblue/node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "caa4e511",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../sleekblue/node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "b10f17c6",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "dist-BkUtPnr8": {
+      "file": "dist-BkUtPnr8.js",
+      "isDynamicEntry": false
+    },
+    "dist-ECFAqqoL": {
+      "file": "dist-ECFAqqoL.js",
+      "isDynamicEntry": false
+    },
+    "dist-c8jb4AtO": {
+      "file": "dist-c8jb4AtO.js",
+      "isDynamicEntry": false
+    },
+    "react-CoTh1R2n": {
+      "file": "react-CoTh1R2n.js",
+      "isDynamicEntry": false
+    }
+  }
+}

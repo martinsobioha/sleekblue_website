@@ -1,128 +1,112 @@
 import { useEffect, useRef } from 'react'
-import * as THREE from 'three'
+
+const SHAPES = [
+  { size: 90,  top: '15%', left: '8%',  dur: 18, delay: 0,   opacity: 0.08, rotate: 30  },
+  { size: 60,  top: '70%', left: '5%',  dur: 22, delay: 3,   opacity: 0.06, rotate: 60  },
+  { size: 110, top: '20%', left: '80%', dur: 25, delay: 1,   opacity: 0.07, rotate: 15  },
+  { size: 50,  top: '75%', left: '75%', dur: 20, delay: 5,   opacity: 0.09, rotate: 45  },
+  { size: 75,  top: '45%', left: '92%', dur: 28, delay: 2,   opacity: 0.05, rotate: 0   },
+  { size: 45,  top: '55%', left: '50%', dur: 16, delay: 7,   opacity: 0.06, rotate: 20  },
+  { size: 80,  top: '10%', left: '45%', dur: 30, delay: 4,   opacity: 0.05, rotate: 75  },
+  { size: 55,  top: '85%', left: '35%', dur: 24, delay: 6,   opacity: 0.07, rotate: 10  },
+]
+
+function OctahedronSVG({ size, opacity, rotate }) {
+  const s = size
+  const cx = s / 2, cy = s / 2, r = s * 0.42
+  const top    = [cx, cy - r]
+  const bottom = [cx, cy + r]
+  const left   = [cx - r, cy]
+  const right  = [cx + r, cy]
+  const front  = [cx, cy + r * 0.3]
+  const back   = [cx, cy - r * 0.3]
+  const pts = (arr) => arr.map(p => p.join(',')).join(' ')
+  return (
+    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, transform: `rotate(${rotate}deg)`, overflow: 'visible' }}>
+      <polygon points={pts([top, left, front])} fill="none" stroke="white" strokeWidth="0.8" />
+      <polygon points={pts([top, right, front])} fill="none" stroke="white" strokeWidth="0.8" />
+      <polygon points={pts([bottom, left, front])} fill="none" stroke="white" strokeWidth="0.8" />
+      <polygon points={pts([bottom, right, front])} fill="none" stroke="white" strokeWidth="0.8" />
+      <polygon points={pts([top, left, back])} fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="2,2" />
+      <polygon points={pts([top, right, back])} fill="none" stroke="white" strokeWidth="0.5" strokeDasharray="2,2" />
+    </svg>
+  )
+}
 
 export default function HeroCanvas() {
   const mountRef = useRef(null)
 
   useEffect(() => {
-    const el = mountRef.current
-    if (!el) return
-
-    // Pre-flight: check WebGL is available before loading Three.js renderer
-    const testCanvas = document.createElement('canvas')
-    const glCtx = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
-    if (!glCtx) return // No WebGL — silently skip animation
-
-    const w = el.clientWidth || window.innerWidth
-    const h = el.clientHeight || 600
-
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000)
-    camera.position.z = 6
-
-    let renderer
-    try {
-      renderer = new THREE.WebGLRenderer({ canvas: document.createElement('canvas'), alpha: true, antialias: true, powerPreference: 'low-power' })
-      renderer.setSize(w, h)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-      renderer.setClearColor(0x000000, 0)
-      el.appendChild(renderer.domElement)
-    } catch {
-      return
-    }
-
-    // Particle field
-    const particleCount = 120
-    const positions = new Float32Array(particleCount * 3)
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 18
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 14
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 8
-    }
-    const pGeo = new THREE.BufferGeometry()
-    pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    const pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.055, transparent: true, opacity: 0.55 })
-    const points = new THREE.Points(pGeo, pMat)
-    scene.add(points)
-
-    // Floating wireframe shapes — subtle premium feel
-    const shapes = []
-    const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.10 })
-    const defs = [
-      { geo: new THREE.OctahedronGeometry(0.55),   x: -3.5, y: 1.8, z: -1 },
-      { geo: new THREE.TetrahedronGeometry(0.7),    x: 3.2,  y: -1.5, z: 0.5 },
-      { geo: new THREE.IcosahedronGeometry(0.45),   x: -1.5, y: -2.2, z: 1 },
-      { geo: new THREE.OctahedronGeometry(0.35),    x: 2.8,  y: 2.0, z: -0.5 },
-      { geo: new THREE.TetrahedronGeometry(0.5),    x: -3.8, y: -0.8, z: 0.8 },
-      { geo: new THREE.IcosahedronGeometry(0.3),    x: 1.0,  y: 2.8, z: -1.5 },
-    ]
-    defs.forEach((d, i) => {
-      const mesh = new THREE.Mesh(d.geo, wireMat)
-      mesh.position.set(d.x, d.y, d.z)
-      mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0)
-      mesh.userData.rx = 0.003 + Math.random() * 0.004
-      mesh.userData.ry = 0.002 + Math.random() * 0.003
-      scene.add(mesh)
-      shapes.push(mesh)
-    })
-
-    // Mouse parallax
-    let mouseX = 0, mouseY = 0
-    function onMouse(e) {
-      mouseX = (e.clientX / window.innerWidth  - 0.5) * 0.6
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.4
-    }
-    window.addEventListener('mousemove', onMouse)
-
-    let animId
-    function animate() {
-      animId = requestAnimationFrame(animate)
-      // Slow rotation + mouse parallax
-      points.rotation.y += 0.0006
-      points.rotation.x += 0.0002
-      scene.rotation.y += (mouseX - scene.rotation.y) * 0.02
-      scene.rotation.x += (-mouseY - scene.rotation.x) * 0.02
-      shapes.forEach(m => {
-        m.rotation.x += m.userData.rx
-        m.rotation.y += m.userData.ry
-      })
-      renderer.render(scene, camera)
-    }
-    animate()
-
-    function onResize() {
-      if (!el) return
-      const nw = el.clientWidth || window.innerWidth
-      const nh = el.clientHeight || 600
-      camera.aspect = nw / nh
-      camera.updateProjectionMatrix()
-      renderer.setSize(nw, nh)
-    }
-    window.addEventListener('resize', onResize)
-
-    return () => {
-      cancelAnimationFrame(animId)
-      window.removeEventListener('mousemove', onMouse)
-      window.removeEventListener('resize', onResize)
-      renderer.dispose()
-      pGeo.dispose()
-      pMat.dispose()
-      wireMat.dispose()
-      defs.forEach(d => d.geo.dispose())
-      if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement)
-    }
+    const style = document.createElement('style')
+    style.textContent = `
+      @keyframes heroFloat {
+        0%   { transform: translateY(0px)   rotate(var(--r)); }
+        50%  { transform: translateY(-18px) rotate(calc(var(--r) + 15deg)); }
+        100% { transform: translateY(0px)   rotate(var(--r)); }
+      }
+      @keyframes heroPulse {
+        0%, 100% { opacity: var(--op); }
+        50%      { opacity: calc(var(--op) * 0.5); }
+      }
+      .hero-shape {
+        position: absolute;
+        animation: heroFloat var(--dur)s ease-in-out infinite, heroPulse var(--dur)s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes heroParticle {
+        0%   { transform: translateY(0) scale(1); opacity: 0.4; }
+        50%  { transform: translateY(-30px) scale(1.2); opacity: 0.15; }
+        100% { transform: translateY(0) scale(1); opacity: 0.4; }
+      }
+      .hero-particle {
+        position: absolute;
+        border-radius: 50%;
+        background: white;
+        pointer-events: none;
+        animation: heroParticle var(--pd)s ease-in-out infinite;
+      }
+    `
+    document.head.appendChild(style)
+    return () => document.head.removeChild(style)
   }, [])
 
   return (
     <div
       ref={mountRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 0,
-        overflow: 'hidden',
-        pointerEvents: 'none',
-      }}
-    />
+      style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}
+      aria-hidden="true"
+    >
+      {SHAPES.map((s, i) => (
+        <div
+          key={i}
+          className="hero-shape"
+          style={{
+            top: s.top,
+            left: s.left,
+            '--r': `${s.rotate}deg`,
+            '--op': s.opacity,
+            '--dur': `${s.dur}s`,
+            animationDelay: `${s.delay}s`,
+          }}
+        >
+          <OctahedronSVG size={s.size} opacity={s.opacity} rotate={s.rotate} />
+        </div>
+      ))}
+      {Array.from({ length: 28 }, (_, i) => (
+        <div
+          key={`p${i}`}
+          className="hero-particle"
+          style={{
+            width: `${2 + (i % 3)}px`,
+            height: `${2 + (i % 3)}px`,
+            top: `${5 + (i * 33.7) % 90}%`,
+            left: `${(i * 17.3) % 95}%`,
+            '--pd': `${8 + (i % 7) * 2}s`,
+            animationDelay: `${(i * 0.7) % 8}s`,
+            opacity: 0.25 + (i % 4) * 0.08,
+          }}
+        />
+      ))}
+    </div>
   )
 }
