@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import HeroCanvas from './HeroCanvas'
 import heroSlide0 from '@assets/HERO_IMAGE_1_1779922059063.jpg'
 import heroSlide1 from '@assets/HERO_SLIDE_1_1779922059065.jpg'
 import heroSlide2 from '@assets/HERO_SLIDE_2_1779922059065.jpg'
@@ -115,6 +116,7 @@ export default function Hero() {
             <div style={{
               position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 5,
             }}>
+              <HeroCanvas />
               <div style={{
                 position: 'absolute', top: '14%', left: '5%', maxWidth: '44%',
               }}>

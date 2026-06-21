@@ -1,5 +1,26 @@
 [
   {
+    "id": "ACT-1782066333978-GT2FT",
+    "action": "review_approved",
+    "detail": "Review by emeka okoro approved",
+    "user": "admin",
+    "timestamp": "2026-06-21T18:25:33.978Z"
+  },
+  {
+    "id": "ACT-1782066306518-UO261",
+    "action": "newsletter_subscribe",
+    "detail": "martinsobioha1@gmail.com subscribed to newsletter",
+    "user": "public",
+    "timestamp": "2026-06-21T18:25:06.518Z"
+  },
+  {
+    "id": "ACT-1782066184800-13FQB",
+    "action": "review_submitted",
+    "detail": "emeka okoro submitted a review",
+    "user": "public",
+    "timestamp": "2026-06-21T18:23:04.800Z"
+  },
+  {
     "id": "ACT-1782064549249-H8PCD",
     "action": "promo_banner",
     "detail": "enabled",

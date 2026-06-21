@@ -18,8 +18,8 @@ export default function BackToTop() {
       onClick={scrollTop}
       aria-label="Back to top"
       style={{
-        position: 'fixed', bottom: '28px', right: '28px', zIndex: 9990,
-        width: '46px', height: '46px', borderRadius: '50%',
+        position: 'fixed', bottom: '92px', right: '24px', zIndex: 9990,
+        width: '44px', height: '44px', borderRadius: '50%',
         background: '#7B2FBE', color: '#fff', border: 'none',
         cursor: 'pointer', boxShadow: '0 4px 16px rgba(123,47,190,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',

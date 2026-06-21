@@ -27,9 +27,12 @@ const DEFAULT_FAQ = [
   },
 ]
 
+const INITIAL_COUNT = 3
+
 export default function FAQ() {
   const [items, setItems] = useState(DEFAULT_FAQ)
   const [open, setOpen] = useState(null)
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     fetch('/api/content')
@@ -58,6 +61,9 @@ export default function FAQ() {
     return () => { const el = document.getElementById('faq-schema'); if (el) el.remove() }
   }, [items])
 
+  const visibleItems = showAll ? items : items.slice(0, INITIAL_COUNT)
+  const hiddenCount = items.length - INITIAL_COUNT
+
   return (
     <section style={{ background: '#f9f5ff', padding: '64px 24px', fontFamily: "'HubotSans', sans-serif" }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -72,7 +78,7 @@ export default function FAQ() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {items.map((item, i) => {
+          {visibleItems.map((item, i) => {
             const isOpen = open === i
             return (
               <div key={i}
@@ -98,6 +104,19 @@ export default function FAQ() {
             )
           })}
         </div>
+
+        {hiddenCount > 0 && (
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <button
+              onClick={() => { setShowAll(s => !s); if (showAll) setOpen(null) }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'none', border: '2px solid #7B2FBE', color: '#7B2FBE', borderRadius: '10px', padding: '11px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'HubotSans', sans-serif", transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#7B2FBE'; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#7B2FBE' }}
+            >
+              {showAll ? '▲ Show Less' : `▼ See ${hiddenCount} More Question${hiddenCount > 1 ? 's' : ''}`}
+            </button>
+          </div>
+        )}
 
         <div style={{ marginTop: '36px', textAlign: 'center' }}>
           <p style={{ fontSize: '14px', color: '#888', margin: '0 0 14px' }}>Still have questions?</p>

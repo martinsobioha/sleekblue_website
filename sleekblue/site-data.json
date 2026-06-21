@@ -394,6 +394,14 @@
       "googleReviewUrl": "https://share.google/OwMhndIizA29kGair",
       "testimonials": [
         {
+          "id": "REV-1782066184799-KIPK2",
+          "name": "emeka okoro",
+          "rating": 5,
+          "text": "am excited working with sleekblue",
+          "location": "orlu imo state",
+          "visible": true
+        },
+        {
           "name": "Makuochukwu Augustine Okeke",
           "text": "Always delivers. I must say I started enjoying peace of mind in event branding when I made the switch to Sleekblue.",
           "rating": 5,

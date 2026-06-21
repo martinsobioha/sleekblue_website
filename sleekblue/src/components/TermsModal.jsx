@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.jpg'
 
 const TERMS_VERSION = 'June 2026'
+const LS_KEY = 'sbm_terms_v2026'
 
 const TERMS_SECTIONS = [
   { title: 'IMPORTANT: PLEASE READ CAREFULLY BEFORE PLACING AN ORDER', body: 'By accessing our website, uploading artwork, placing an order, making payment, or using any of our services, you acknowledge that you have read, understood, and agreed to these Terms & Conditions.' },
@@ -40,6 +42,7 @@ function validatePhone(v) {
 const F = { fontFamily: "'HubotSans', sans-serif" }
 
 export default function TermsModal() {
+  const location = useLocation()
   const [show, setShow] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -53,8 +56,11 @@ export default function TermsModal() {
   const scrollRef = useRef(null)
 
   useEffect(() => {
-    if (!sessionStorage.getItem('sbm_terms_accepted')) setShow(true)
-  }, [])
+    if (!localStorage.getItem(LS_KEY)) {
+      setShow(true)
+      setDeclined(false)
+    }
+  }, [location.pathname])
 
   function handleScroll() {
     const el = scrollRef.current
@@ -105,7 +111,7 @@ export default function TermsModal() {
       if (res.ok) { const d = await res.json(); acceptanceId = d.acceptanceId || acceptanceId }
     } catch {}
     localStorage.setItem('sbm_latest_acceptance', JSON.stringify({ ...payload, acceptanceId, timestamp: new Date().toISOString() }))
-    sessionStorage.setItem('sbm_terms_accepted', 'true')
+    localStorage.setItem(LS_KEY, 'true')
     setSubmitting(false)
     setShow(false)
   }
@@ -116,14 +122,14 @@ export default function TermsModal() {
 
   if (declined) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '40px 32px', maxWidth: '440px', textAlign: 'center' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚠️</div>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1a1a1a', marginBottom: '12px', ...F }}>Terms Required</h2>
-          <p style={{ fontSize: '14px', color: '#555', lineHeight: 1.6, marginBottom: '24px', ...F }}>
-            You must accept our Terms &amp; Conditions to use Sleekblue Media Houz services. Without acceptance, we are unable to process orders.
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ background: '#fff', borderRadius: '16px', padding: '36px 28px', maxWidth: '400px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+          <div style={{ fontSize: '36px', marginBottom: '10px' }}>⚠️</div>
+          <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#1a1a1a', marginBottom: '10px', ...F }}>Terms Required</h2>
+          <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.6, marginBottom: '20px', ...F }}>
+            You must accept our Terms &amp; Conditions to use Sleekblue Media Houz services. Without acceptance, we cannot process orders.
           </p>
-          <button onClick={() => setDeclined(false)} style={{ background: '#7B2FBE', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', ...F }}>
+          <button onClick={() => setDeclined(false)} style={{ background: '#7B2FBE', color: '#fff', border: 'none', borderRadius: '10px', padding: '11px 26px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', ...F }}>
             Go Back &amp; Review Terms
           </button>
         </div>
@@ -132,74 +138,77 @@ export default function TermsModal() {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '660px', maxHeight: '94vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.35)', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.80)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+      <div style={{ background: '#fff', borderRadius: '14px', width: '100%', maxWidth: '520px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 56px rgba(0,0,0,0.38)', overflow: 'hidden' }}>
 
-        <div style={{ background: '#7B2FBE', padding: '18px 24px', display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
-          <img src={logo} alt="Sleekblue Media Houz" style={{ height: '40px', width: 'auto', borderRadius: '6px', background: '#fff', padding: '3px' }} />
+        {/* Header */}
+        <div style={{ background: '#7B2FBE', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          <img src={logo} alt="Sleekblue" style={{ height: '34px', width: 'auto', borderRadius: '5px', background: '#fff', padding: '2px' }} />
           <div>
-            <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: 800, margin: 0, ...F }}>Terms &amp; Conditions of Sale</h2>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', margin: '2px 0 0', ...F }}>Version: {TERMS_VERSION} · Please read carefully before continuing</p>
+            <h2 style={{ color: '#fff', fontSize: '14px', fontWeight: 800, margin: 0, ...F }}>Terms &amp; Conditions of Sale</h2>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', margin: '1px 0 0', ...F }}>Version: {TERMS_VERSION} · Read carefully before continuing</p>
           </div>
         </div>
 
-        <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: '#FAFAFA' }}>
-          <div style={{ background: '#FFF8E1', border: '1.5px solid #F9A825', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px' }}>
-            <p style={{ fontSize: '12.5px', color: '#7B3F00', margin: 0, fontWeight: 600, lineHeight: 1.5, ...F }}>
-              ⚠️ By clicking "I Agree", creating an order, uploading artwork, approving a design, making payment, or using any service provided by Sleekblue Media Houz, you confirm that you have read, understood, and accepted these Terms &amp; Conditions. Electronic records, digital communications, website logs, invoices, and order records may be relied upon as evidence of acceptance.
+        {/* Scrollable body */}
+        <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', background: '#FAFAFA' }}>
+          <div style={{ background: '#FFF8E1', border: '1.5px solid #F9A825', borderRadius: '8px', padding: '10px 13px', marginBottom: '14px' }}>
+            <p style={{ fontSize: '11.5px', color: '#7B3F00', margin: 0, fontWeight: 600, lineHeight: 1.5, ...F }}>
+              ⚠️ By clicking "I Agree", creating an order, uploading artwork, approving a design, making payment, or using any service, you confirm you have read and accepted these Terms &amp; Conditions.
             </p>
           </div>
           {TERMS_SECTIONS.map((s, i) => (
-            <div key={i} style={{ marginBottom: '18px' }}>
-              <h3 style={{ fontSize: '12.5px', fontWeight: 800, color: '#7B2FBE', marginBottom: '6px', ...F, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{s.title}</h3>
-              <p style={{ fontSize: '12.5px', color: '#333', lineHeight: 1.7, whiteSpace: 'pre-line', ...F, margin: 0 }}>{s.body}</p>
+            <div key={i} style={{ marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '11px', fontWeight: 800, color: '#7B2FBE', marginBottom: '4px', ...F, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{s.title}</h3>
+              <p style={{ fontSize: '11.5px', color: '#333', lineHeight: 1.65, whiteSpace: 'pre-line', ...F, margin: 0 }}>{s.body}</p>
             </div>
           ))}
-          <div style={{ background: '#f0e8ff', border: '1.5px solid #7B2FBE', borderRadius: '10px', padding: '14px 16px', marginTop: '10px', marginBottom: '4px' }}>
-            <p style={{ fontSize: '12px', color: '#5a1a9b', margin: 0, fontWeight: 600, lineHeight: 1.6, ...F }}>Last Updated: {TERMS_VERSION} · Sleekblue Media Houz — Print · Branding · Design · Production</p>
+          <div style={{ background: '#f0e8ff', border: '1.5px solid #7B2FBE', borderRadius: '8px', padding: '10px 13px', marginTop: '8px' }}>
+            <p style={{ fontSize: '11px', color: '#5a1a9b', margin: 0, fontWeight: 600, lineHeight: 1.5, ...F }}>Last Updated: {TERMS_VERSION} · Sleekblue Media Houz</p>
           </div>
         </div>
 
-        <div style={{ padding: '16px 24px 20px', background: '#fff', borderTop: '1px solid #eee', flexShrink: 0 }}>
+        {/* Footer / form */}
+        <div style={{ padding: '12px 18px 16px', background: '#fff', borderTop: '1px solid #eee', flexShrink: 0 }}>
           {!scrolledToBottom && (
-            <p style={{ fontSize: '11.5px', color: '#888', textAlign: 'center', marginBottom: '10px', ...F }}>↓ Please scroll to the bottom to review all terms before accepting</p>
+            <p style={{ fontSize: '10.5px', color: '#888', textAlign: 'center', marginBottom: '8px', ...F }}>↓ Scroll to the bottom before accepting</p>
           )}
-          <p style={{ fontSize: '12.5px', fontWeight: 700, color: '#333', marginBottom: '10px', ...F }}>Your details (required to record your acceptance):</p>
+          <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#333', marginBottom: '8px', ...F }}>Your details (required to record acceptance):</p>
 
-          <div style={{ marginBottom: '8px' }}>
+          <div style={{ marginBottom: '7px' }}>
             <input type="text" placeholder="Full Name * (e.g. John Doe)" value={name}
               onChange={e => { setName(e.target.value); if (nameErr) blurName(e.target.value) }}
               onBlur={e => blurName(e.target.value)}
-              style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${nameErr ? '#dc2626' : '#ddd'}`, borderRadius: '8px', fontSize: '13px', ...F, outline: 'none', boxSizing: 'border-box' }} />
-            {nameErr && <p style={{ fontSize: '11px', color: '#dc2626', margin: '3px 0 0', ...F }}>{nameErr}</p>}
+              style={{ width: '100%', padding: '8px 11px', border: `1.5px solid ${nameErr ? '#dc2626' : '#ddd'}`, borderRadius: '7px', fontSize: '12px', ...F, outline: 'none', boxSizing: 'border-box' }} />
+            {nameErr && <p style={{ fontSize: '10.5px', color: '#dc2626', margin: '2px 0 0', ...F }}>{nameErr}</p>}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px', marginBottom: '9px' }}>
             <div>
-              <input type="email" placeholder="Email Address * (e.g. you@gmail.com)" value={email}
+              <input type="email" placeholder="Email *" value={email}
                 onChange={e => { setEmail(e.target.value); if (emailErr) blurEmail(e.target.value) }}
                 onBlur={e => blurEmail(e.target.value)}
-                style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${emailErr ? '#dc2626' : '#ddd'}`, borderRadius: '8px', fontSize: '13px', ...F, outline: 'none', boxSizing: 'border-box' }} />
-              {emailErr && <p style={{ fontSize: '11px', color: '#dc2626', margin: '3px 0 0', ...F }}>{emailErr}</p>}
+                style={{ width: '100%', padding: '8px 11px', border: `1.5px solid ${emailErr ? '#dc2626' : '#ddd'}`, borderRadius: '7px', fontSize: '12px', ...F, outline: 'none', boxSizing: 'border-box' }} />
+              {emailErr && <p style={{ fontSize: '10.5px', color: '#dc2626', margin: '2px 0 0', ...F }}>{emailErr}</p>}
             </div>
             <div>
-              <input type="tel" placeholder="WhatsApp Number * (e.g. 08012345678)" value={phone}
+              <input type="tel" placeholder="WhatsApp * (e.g. 08012345678)" value={phone}
                 onChange={e => { setPhone(e.target.value); if (phoneErr) blurPhone(e.target.value) }}
                 onBlur={e => blurPhone(e.target.value)}
-                style={{ width: '100%', padding: '9px 12px', border: `1.5px solid ${phoneErr ? '#dc2626' : '#ddd'}`, borderRadius: '8px', fontSize: '13px', ...F, outline: 'none', boxSizing: 'border-box' }} />
-              {phoneErr && <p style={{ fontSize: '11px', color: '#dc2626', margin: '3px 0 0', ...F }}>{phoneErr}</p>}
+                style={{ width: '100%', padding: '8px 11px', border: `1.5px solid ${phoneErr ? '#dc2626' : '#ddd'}`, borderRadius: '7px', fontSize: '12px', ...F, outline: 'none', boxSizing: 'border-box' }} />
+              {phoneErr && <p style={{ fontSize: '10.5px', color: '#dc2626', margin: '2px 0 0', ...F }}>{phoneErr}</p>}
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-            <button onClick={() => setDeclined(true)} style={{ flex: 1, padding: '11px', background: '#fff', border: '1.5px solid #ddd', borderRadius: '10px', fontSize: '13.5px', fontWeight: 600, color: '#888', cursor: 'pointer', ...F }}>Decline</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setDeclined(true)} style={{ flex: 1, padding: '10px', background: '#fff', border: '1.5px solid #ddd', borderRadius: '9px', fontSize: '12.5px', fontWeight: 600, color: '#888', cursor: 'pointer', ...F }}>Decline</button>
             <button onClick={handleAgree} disabled={submitting}
-              style={{ flex: 2, padding: '11px', background: allValid ? '#7B2FBE' : '#ccc', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: allValid ? 'pointer' : 'not-allowed', ...F, transition: 'background 0.2s' }}>
-              {submitting ? 'Recording acceptance…' : '✓ I Agree — Continue to Site'}
+              style={{ flex: 2, padding: '10px', background: allValid ? '#7B2FBE' : '#ccc', color: '#fff', border: 'none', borderRadius: '9px', fontSize: '13px', fontWeight: 700, cursor: allValid ? 'pointer' : 'not-allowed', ...F, transition: 'background 0.2s' }}>
+              {submitting ? 'Recording…' : '✓ I Agree — Continue'}
             </button>
           </div>
-          <p style={{ fontSize: '10.5px', color: '#aaa', textAlign: 'center', marginTop: '8px', lineHeight: 1.5, ...F }}>
-            Your acceptance is electronically recorded with timestamp, IP address, and contact details.
+          <p style={{ fontSize: '10px', color: '#bbb', textAlign: 'center', marginTop: '6px', lineHeight: 1.4, ...F }}>
+            Acceptance recorded with timestamp, IP, and contact details.
           </p>
         </div>
       </div>

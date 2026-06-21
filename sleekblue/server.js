@@ -348,6 +348,14 @@ app.get('/api/about', (req, res) => {
   res.json({ ...ABOUT_DEFAULTS, ...(data.about || {}) })
 })
 
+app.put('/api/admin/about', requireAuth, (req, res) => {
+  const data = readJSON(SITE_DATA_FILE, {})
+  data.about = { ...(data.about || {}), ...req.body }
+  writeJSON(SITE_DATA_FILE, data)
+  logActivity('about_updated', 'About page content updated', 'admin')
+  res.json({ ok: true })
+})
+
 app.get('/api/blog', (req, res) => {
   const data = readJSON(SITE_DATA_FILE, {})
   const now = new Date()
