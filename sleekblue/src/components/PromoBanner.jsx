@@ -13,28 +13,56 @@ export default function PromoBanner() {
 
   if (!banner || dismissed) return null
 
+  const color = banner.color || '#7B2FBE'
+  const bgColor = banner.bgColor || '#f5f0ff'
+
+  const tickerContent = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0' }}>
+      {banner.text}
+      {banner.link && (
+        <a href={banner.link} style={{ marginLeft: '14px', marginRight: '40px', color, fontWeight: 800, textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+          Learn more →
+        </a>
+      )}
+      {!banner.link && <span style={{ marginRight: '60px' }} />}
+    </span>
+  )
+
   return (
     <div style={{
-      background: banner.bgColor || '#f5f0ff',
-      borderBottom: `2px solid ${banner.color || '#7B2FBE'}20`,
-      padding: '10px 20px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: '16px', position: 'relative',
+      background: bgColor,
+      borderBottom: `2px solid ${color}20`,
+      overflow: 'hidden',
+      position: 'relative',
+      height: '38px',
+      display: 'flex',
+      alignItems: 'center',
       fontFamily: "'HubotSans',sans-serif",
-      animation: 'fadeIn 0.5s ease',
     }}>
-      <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 600, color: banner.color || '#7B2FBE', textAlign: 'center', lineHeight: 1.5 }}>
-        {banner.text}
-        {banner.link && (
-          <a href={banner.link} style={{ marginLeft: '12px', color: banner.color || '#7B2FBE', fontWeight: 800, textDecoration: 'underline' }}>
-            Learn more →
-          </a>
-        )}
-      </p>
+      <style>{`
+        @keyframes promoBannerScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .promo-ticker-track {
+          display: flex;
+          width: max-content;
+          animation: promoBannerScroll 28s linear infinite;
+          white-space: nowrap;
+          align-items: center;
+        }
+        .promo-ticker-track:hover { animation-play-state: paused; }
+      `}</style>
+
+      <div className="promo-ticker-track" style={{ fontSize: '13.5px', fontWeight: 600, color }}>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <span key={i}>{tickerContent}</span>
+        ))}
+      </div>
+
       <button onClick={() => setDismissed(true)}
-        style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: banner.color || '#7B2FBE', fontSize: '18px', lineHeight: 1, padding: '4px', opacity: 0.6 }}
+        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.7)', border: `1px solid ${color}30`, borderRadius: '50%', cursor: 'pointer', color, fontSize: '15px', lineHeight: 1, padding: '2px 6px', zIndex: 2, backdropFilter: 'blur(4px)' }}
         aria-label="Dismiss banner">×</button>
-      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
     </div>
   )
 }

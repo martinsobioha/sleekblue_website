@@ -250,7 +250,11 @@ export default function ProductPage() {
     setCustomQty(qty)
   }
 
-  const similarProducts = ALL_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 8)
+  const STICKER_SLUGS = ['die-cut-stickers','product-labels','transparent-stickers','holographic-stickers','chrome-stickers','vinyl-roll-labels','seal-stickers','bumper-stickers','barcode-labels','paper-stickers']
+  const isSticker = product.category === 'Label Stickers' || STICKER_SLUGS.includes(product.slug)
+  const similarProducts = isSticker
+    ? ALL_PRODUCTS.filter(p => STICKER_SLUGS.includes(p.slug) && p.id !== product.id).slice(0, 8)
+    : ALL_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 8)
 
   // Popular badge logic for die-cut sizes
   function getSizeBadge(size) {

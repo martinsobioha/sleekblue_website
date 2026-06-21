@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.jpg'
 import { ALL_PRODUCTS, STICKER_SIZE_PRICES, getProductDetails } from '../data/products'
 import { AnalyticsView, ReportsView } from '../components/AdminAnalytics'
+import TiptapEditor from '../components/TiptapEditor'
 
 const PRI = '#7B2FBE'
 const PRI_LIGHT = '#f0e8ff'
@@ -2003,9 +2004,13 @@ function BlogPostEditor({ token, post, onSaved, onCancel }) {
         <div style={{ gridColumn: '1 / -1' }}>
           <Card>
             <h3 style={{ fontSize: '13px', fontWeight: 700, color: PRI, marginBottom: '14px', fontFamily: "'HubotSans',sans-serif" }}>Content</h3>
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '10px', fontFamily: "'HubotSans',sans-serif" }}>Write your full blog post content below. Use double line breaks for new paragraphs.</p>
-            <textarea value={form.content} onChange={e => set('content', e.target.value)} rows={16} placeholder="Write your full blog post here…"
-              style={{ width: '100%', padding: '12px', border: '1.5px solid #ddd', borderRadius: '8px', fontSize: '14px', fontFamily: "'HubotSans',sans-serif", outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7, color: '#333' }} />
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '10px', fontFamily: "'HubotSans',sans-serif" }}>Use the rich text editor below — format headings, bold, lists, links, and more.</p>
+            <TiptapEditor
+              value={form.content}
+              onChange={v => set('content', v)}
+              placeholder="Write your full blog post here…"
+              height={460}
+            />
           </Card>
         </div>
 

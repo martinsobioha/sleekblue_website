@@ -1,0 +1,59 @@
+Remaining from Original Plan (4 items)
+WYSIWYG blog editor — Tiptap or Quill instead of plain textarea for rich blog content
+FAQPage JSON-LD schema — structured schema on the FAQ section for Google rich results
+Product comparison page — side-by-side specs/price for 2–3 products
+Testimonials carousel — auto-rotating slider (currently a static grid)
+🟡 New Features Worth Building (up to 46 more)
+SEO & Structured Data
+BreadcrumbList JSON-LD on product + blog pages
+WebSite JSON-LD with Sitelinks Searchbox on homepage
+Per-product FAQ accordion with FAQPage schema per product page
+Open Graph preview tester in admin SEO settings
+Store & Products
+Site-wide search (products + blog in one search bar in navbar)
+Advanced store filters — filter by material, size, category, price range
+Product variant colour swatches on the store grid cards
+Wishlist / Save for Later — localStorage-based, persists across visits
+Product video support — YouTube/Vimeo embed field per product in admin
+Size guide modal per product (bleed requirements, dimensions)
+Print file spec guide — DPI, bleed, colour mode, accepted formats per product
+Social proof nudge — "🔥 12 people viewed this today" on product pages
+Quantity break price table — show tiered pricing (50, 100, 250, 500 pcs)
+Quote & Ordering
+Instant quote calculator — input qty + size → see live estimated price
+Multi-step quote wizard — replaces the single form with guided steps
+Bulk order form — paste/upload a list of items and quantities at once
+Delivery time estimator — pick your state → see estimated days + cost
+Printable quote PDF — generate a formatted quote slip from any quote request
+Coupon / discount code system — admin creates codes, customers enter at quote
+Paystack payment integration — pay-to-confirm deposit for large orders
+Customer Engagement
+Customer review submission form — public form → feeds into testimonials pending approval
+Blog comment section — simple name + comment form, admin-moderated
+Newsletter signup — email capture banner/footer, stored in admin
+WhatsApp broadcast capture — "Join our broadcast list" form saving numbers
+Referral system — shareable referral link, admin tracks who referred
+Before/after design slider — show raw vs. finished artwork on portfolio/homepage
+Animated stats counter — "8 years · 4,200+ clients · 50+ products" counts up on scroll
+Gallery / Portfolio page — showcase past work by category with lightbox
+Admin
+Export leads to CSV — one-click download of all quote leads
+Admin notification badge — red dot on sidebar when new leads arrive
+Admin email/WhatsApp notification on new quote submission
+Admin two-factor auth (OTP) — 6-digit code via WhatsApp/email at login
+Abandoned quote follow-up — flag leads with no response after X days
+Email notification template editor — customise the quote confirmation email
+Google Analytics tag manager in Settings (paste UA/GA4 ID → injected in head)
+Meta Pixel integration in Settings (paste Pixel ID → injected in head)
+Admin dark mode for the control panel
+UX & Performance
+Scroll progress bar on blog posts (thin line at top of page)
+Page transition animations — subtle fade/slide between routes
+Lazy image loading with blur-up — LQIP placeholder while full image loads
+Floating "Request Quote" sticky CTA — visible on all product pages on mobile
+Dark mode toggle for the main website
+Multi-language toggle — English + Igbo or Yoruba switcher
+Infrastructure
+Customer portal / account login — returning customers track their orders
+Order status tracker — admin updates status → customer sees it via link
+Instagram feed embed — pull latest posts automatically on the homepage
