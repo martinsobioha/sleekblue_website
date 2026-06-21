@@ -1,6 +1,167 @@
 {
   "events": [
     {
+      "id": "EVT-1782050851815-K6ZIP",
+      "type": "pageview",
+      "page": "/quote",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-21T14:07:31.545Z",
+      "ip": "105.127.16.216",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1782050740298-U46TO",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-21T14:05:39.887Z",
+      "ip": "105.127.16.216",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1782050740188-9WECY",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-21T14:05:39.876Z",
+      "ip": "105.127.16.216",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781856815214-AW4XK",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:13:34.998Z",
+      "ip": "105.127.17.92",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781856815103-7F03U",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:13:35.006Z",
+      "ip": "105.127.17.92",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781856203362-MCK0L",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:03:23.036Z",
+      "ip": "105.127.17.92",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1781856203318-E77PW",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://c7234b33-faa1-4540-8824-ae0f6277e432-00-2y7b62m5biotw.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:03:23.031Z",
+      "ip": "105.127.17.92",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
       "id": "EVT-1781828802513-OABSU",
       "type": "product_view",
       "page": "/store/letterhead",
@@ -8329,6 +8490,78 @@
   ],
   "securityEvents": [
     {
+      "id": "SEC-1781856045409-73FU6",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/blog",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:45.409Z"
+    },
+    {
+      "id": "SEC-1781856045299-EQUO0",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/leads",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:45.299Z"
+    },
+    {
+      "id": "SEC-1781856045166-MU5I8",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/site-data",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:45.166Z"
+    },
+    {
+      "id": "SEC-1781856045160-XWGSK",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/acceptances",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:45.160Z"
+    },
+    {
+      "id": "SEC-1781856044993-0YT6X",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/blog",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:44.993Z"
+    },
+    {
+      "id": "SEC-1781856044907-2LRX3",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/leads",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:44.907Z"
+    },
+    {
+      "id": "SEC-1781856044895-BASVG",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/acceptances",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:44.895Z"
+    },
+    {
+      "id": "SEC-1781856044883-E0OOF",
+      "type": "invalid_token",
+      "ip": "105.127.17.92",
+      "path": "/api/admin/site-data",
+      "method": "GET",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-19T08:00:44.883Z"
+    },
+    {
       "id": "SEC-1781813239861-8AGQQ",
       "type": "rate_limit",
       "ip": "127.0.0.1",
@@ -12755,78 +12988,6 @@
       "method": "GET",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
       "timestamp": "2026-06-18T20:01:22.829Z"
-    },
-    {
-      "id": "SEC-1781812882754-6LBH5",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/content",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.754Z"
-    },
-    {
-      "id": "SEC-1781812882697-DTX1P",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/content",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.697Z"
-    },
-    {
-      "id": "SEC-1781812882666-FX1JE",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/content",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.666Z"
-    },
-    {
-      "id": "SEC-1781812882660-FF9Y0",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/page-layout",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.660Z"
-    },
-    {
-      "id": "SEC-1781812882584-RQLF1",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/hero",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.584Z"
-    },
-    {
-      "id": "SEC-1781812882554-DPU1F",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/content",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.554Z"
-    },
-    {
-      "id": "SEC-1781812882550-96YXC",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/page-layout",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.550Z"
-    },
-    {
-      "id": "SEC-1781812882547-YHNB8",
-      "type": "rate_limit",
-      "ip": "127.0.0.1",
-      "path": "/seo",
-      "method": "GET",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.55 Safari/537.36",
-      "timestamp": "2026-06-18T20:01:22.547Z"
     }
   ]
 }
