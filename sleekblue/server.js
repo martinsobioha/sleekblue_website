@@ -37,8 +37,9 @@ const blogUpload    = multer({ storage: makeStorage('blog'),    limits: { fileSi
 const productUpload = multer({ storage: makeStorage('products'), limits: { fileSize: 10 * 1024 * 1024 } })
 const siteUpload    = multer({ storage: makeStorage('site'),    limits: { fileSize: 10 * 1024 * 1024 } })
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sbm_admin_jwt_secret_2026'
-const PORT       = process.env.TERMS_PORT || 3001
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) { console.error('[FATAL] JWT_SECRET env var is not set. Set it before starting the server.'); process.exit(1) }
+const PORT       = process.env.PORT || 3001
 
 function readJSON(file, fallback = {}) {
   if (!existsSync(file)) return fallback
@@ -1351,5 +1352,19 @@ app.get('/api/product/views/:slug', (req, res) => {
   const views7d = (analytics.events || []).filter(e => e.type === 'product_view' && e.slug === slug && new Date(e.timestamp) >= cutoff).length
   res.json({ slug, views7d })
 })
+
+// ── Serve React frontend (production build) ───────────────────────────────────
+const DIST_DIR = join(__dirname, 'dist')
+if (existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR))
+  // All non-API routes → React app (handles client-side routing)
+  app.get('/{*splat}', (req, res) => {
+    res.sendFile(join(DIST_DIR, 'index.html'))
+  })
+} else {
+  app.get('/{*splat}', (req, res) => {
+    res.status(503).json({ error: 'Frontend not built. Run: npm run build' })
+  })
+}
 
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))

@@ -4,14 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "find src -name '*.js' -o -name '*.jsx' -o -name '*.css' | xargs touch",
+    "start": "node server.js",
     "dev": "vite",
     "server": "node server.js",
     "build": "vite build",
+    "deploy": "vite build && node server.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "CHROMIUM_PATH=/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium playwright test",
+    "test": "playwright test",
     "test:report": "playwright show-report"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.27.1",

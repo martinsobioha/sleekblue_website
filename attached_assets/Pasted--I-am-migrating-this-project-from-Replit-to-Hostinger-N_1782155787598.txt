@@ -1,0 +1,25 @@
+*I am migrating this project from Replit to Hostinger Node.js hosting permanently. Audit and fix the entire codebase right now for production readiness. Do every single one of the following without asking me questions:*
+
+*1. SERVER PORT*
+Find every place in the codebase where a port number is hardcoded (e.g. `3000`, `5000`, `8080`, `listen(3000)`, etc.) and replace it so the server always listens on `process.env.PORT || 3000`. There should be zero hardcoded port numbers left anywhere.
+
+*2. ENVIRONMENT VARIABLES*
+Scan every file for hardcoded secrets — API keys, database URLs, connection strings, JWT secrets, Supabase keys, Paystack keys, or any credential written directly in the code. Replace each one with `process.env.VARIABLE_NAME`. Then create a file called `.env.example` in the project root that lists every variable name with a blank or placeholder value, so I know exactly what to configure on Hostinger.
+
+*3. PACKAGE.JSON*
+Open `package.json` and ensure the `"scripts"` section contains a `"start"` key that points to the correct main entry file (e.g. `"start": "node server.js"` or whichever file actually starts the app). If `"main"` is defined, make sure `"start"` matches it. Also confirm `"engines"` specifies the Node.js version.
+
+*4. REPLIT CLEANUP*
+Delete or flag these Replit-specific files that have no place on Hostinger: `.replit`, `replit.nix`, `.breakpoints`, `.upm/`, `replit.lock`. Do not delete anything that is actual application code.
+
+*5. JUNK & CACHE CLEANUP*
+List every file or folder that is safe to delete before I zip and export — specifically: `node_modules/`, `.cache/`, `dist/` (if it's a generated build), any `.log` files, and any temp or test files. Do not delete them yourself — just give me the exact commands to run in the Shell to clean up before I export.
+
+*6. FINAL REPORT*
+When you are done, give me:
+- A summary of every file you changed and exactly what you changed
+- The complete contents of the new `.env.example` file
+- The exact Shell commands to clean up before I zip the project
+- Any final warnings about things I need to manually check before deploying to Hostinger
+
+*Do not skip any of these steps. Start now.*
