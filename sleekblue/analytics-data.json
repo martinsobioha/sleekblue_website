@@ -1,6 +1,52 @@
 {
   "events": [
     {
+      "id": "EVT-1782155474828-SI5N8",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-22T19:11:14.690Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
+      "id": "EVT-1782155474743-FGJ72",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-22T19:11:14.672Z",
+      "ip": "127.0.0.1",
+      "location": {
+        "country": "Local",
+        "city": "Dev Server",
+        "region": "",
+        "lat": 0,
+        "lon": 0
+      }
+    },
+    {
       "id": "EVT-1782155405394-41TWS",
       "type": "pageview",
       "page": "/",
