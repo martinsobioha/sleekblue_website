@@ -8,6 +8,7 @@
     "dev": "vite",
     "server": "node server.js",
     "build": "vite build",
+    "deploy": "vite build && node server.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "playwright test",

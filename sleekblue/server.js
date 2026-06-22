@@ -1353,4 +1353,18 @@ app.get('/api/product/views/:slug', (req, res) => {
   res.json({ slug, views7d })
 })
 
+// ── Serve React frontend (production build) ───────────────────────────────────
+const DIST_DIR = join(__dirname, 'dist')
+if (existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR))
+  // All non-API routes → React app (handles client-side routing)
+  app.get('/{*splat}', (req, res) => {
+    res.sendFile(join(DIST_DIR, 'index.html'))
+  })
+} else {
+  app.get('/{*splat}', (req, res) => {
+    res.status(503).json({ error: 'Frontend not built. Run: npm run build' })
+  })
+}
+
 app.listen(PORT, () => console.log(`Sleekblue API server running on port ${PORT}`))
