@@ -1,6 +1,52 @@
 {
   "events": [
     {
+      "id": "EVT-1782155722605-60A9A",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://7fe642ec-d23d-43df-8f03-2699c9b6eb62-00-3n5k9zdp64dno.worf.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-22T19:15:21.525Z",
+      "ip": "105.127.16.140",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1782155721814-9OGXQ",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://7fe642ec-d23d-43df-8f03-2699c9b6eb62-00-3n5k9zdp64dno.worf.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=default-start-application",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      "timestamp": "2026-06-22T19:15:21.514Z",
+      "ip": "105.127.16.140",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
       "id": "EVT-1782155474828-SI5N8",
       "type": "pageview",
       "page": "/",
