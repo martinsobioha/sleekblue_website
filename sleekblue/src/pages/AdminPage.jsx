@@ -16,10 +16,10 @@ function authH(token) {
 function fmt(n) { return '₦' + Math.round(n).toLocaleString() }
 
 // ─── Shared UI ───────────────────────────────────────────────────────────────
-function Card({ children, className = '', style }) {
-  return <div className={`rounded-[20px] bg-white p-6 shadow-sm ${className}`} style={style}>{children}</div>
+function Card({ children, className = '' }) {
+  return <div className={`rounded-[20px] bg-white p-6 shadow-sm ${className}`}>{children}</div>
 }
-function Btn({ children, onClick, variant = 'primary', disabled, className = '', style }) {
+function Btn({ children, onClick, variant = 'primary', disabled, className = '' }) {
   const variants = {
     primary: 'bg-[#7B2FBE] text-white hover:bg-[#6826a2] border-transparent',
     danger: 'bg-red-600 text-white hover:bg-red-700 border-transparent',
@@ -30,16 +30,15 @@ function Btn({ children, onClick, variant = 'primary', disabled, className = '',
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition ${variants[variant] || variants.primary} ${className}`}
-      style={{ opacity: disabled ? 0.55 : 1, cursor: disabled ? 'not-allowed' : 'pointer', ...style }}>
+      className={`inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold cursor-pointer transition disabled:opacity-55 disabled:cursor-not-allowed ${variants[variant] || variants.primary} ${className}`}>
       {children}
     </button>
   )
 }
-function Input({ label, value, onChange, type = 'text', placeholder, rows, className = '', style, readOnly }) {
+function Input({ label, value, onChange, type = 'text', placeholder, rows, className = '', readOnly }) {
   const base = 'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#7B2FBE] focus:ring-2 focus:ring-[#7B2FBE]/20 disabled:bg-slate-50'
   return (
-    <div className={`mb-4 ${className}`} style={style}>
+    <div className={`mb-4 ${className}`}>
       {label && <label className="block text-xs font-semibold text-slate-600 mb-2">{label}</label>}
       {rows ? (
         <textarea
@@ -61,9 +60,9 @@ function Input({ label, value, onChange, type = 'text', placeholder, rows, class
     </div>
   )
 }
-function Badge({ children, color = PRI, className = '', style }) {
+function Badge({ children, color = PRI, className = '' }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ${className}`} style={{ background: `${color}20`, color, ...style }}>
+    <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ${className}`} style={{ background: `${color}20`, color }}>
       {children}
     </span>
   )
@@ -658,6 +657,8 @@ function PageEditorView({ token }) {
             ))}
             <a href="/" target="_blank" rel="noopener noreferrer"
               className="ml-auto inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+              View Live Site ↗
+            </a>
         </div>
       </div>
 
@@ -3414,7 +3415,7 @@ function PromoBannerView({ token }) {
         <p className="text-sm text-slate-500 m-0">Shows a coloured announcement bar at the top of every page on your website.</p>
       </div>
       <Card>
-        <div className="mb-5 flex items-center gap-3 rounded-2xl p-4" style={{ background: form.enabled ? '#dcfce7' : '#f9f9f9', border: `1px solid ${form.enabled ? '#bbf7d0' : '#eee'}` }}>
+        <div className={`mb-5 flex items-center gap-3 rounded-2xl border p-4 ${form.enabled ? 'bg-green-100 border-green-200' : 'bg-[#f9f9f9] border-[#eee]'}`}>
           <label className="flex flex-1 cursor-pointer items-center gap-3">
             <input type="checkbox" checked={form.enabled} onChange={e => set('enabled', e.target.checked)} className="h-4 w-4 cursor-pointer" />
             <span className={`text-sm font-semibold ${form.enabled ? 'text-emerald-600' : 'text-slate-500'}`}>

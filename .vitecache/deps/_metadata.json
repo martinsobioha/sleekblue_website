@@ -1,91 +1,43 @@
 {
-  "hash": "e7263730",
-  "configHash": "b76b61af",
+  "hash": "3947934d",
+  "configHash": "386f23f8",
   "lockfileHash": "f978abbd",
-  "browserHash": "0d10ef61",
+  "browserHash": "e2f5f764",
   "optimized": {
-    "@tiptap/extension-link": {
-      "src": "../../sleekblue/node_modules/.pnpm/@tiptap+extension-link@3.27.1_@tiptap+core@3.27.1_@tiptap+pm@3.27.1__@tiptap+pm@3.27.1/node_modules/@tiptap/extension-link/dist/index.js",
-      "file": "@tiptap_extension-link.js",
-      "fileHash": "f5bc1a08",
-      "needsInterop": false
-    },
-    "@tiptap/extension-placeholder": {
-      "src": "../../sleekblue/node_modules/.pnpm/@tiptap+extension-placeholder@3.27.1_@tiptap+extensions@3.27.1_@tiptap+core@3.27.1_@tiptap+pm@3.27.1__@tiptap+pm@3.27.1_/node_modules/@tiptap/extension-placeholder/dist/index.js",
-      "file": "@tiptap_extension-placeholder.js",
-      "fileHash": "b5b77d6f",
-      "needsInterop": false
-    },
-    "@tiptap/react": {
-      "src": "../../sleekblue/node_modules/.pnpm/@tiptap+react@3.27.1_@floating-ui+dom@1.7.6_@tiptap+core@3.27.1_@tiptap+pm@3.27.1__@tip_ba32db67f45f47e5f60b007fe3504e01/node_modules/@tiptap/react/dist/index.js",
-      "file": "@tiptap_react.js",
-      "fileHash": "2d61e0f9",
-      "needsInterop": false
-    },
-    "@tiptap/starter-kit": {
-      "src": "../../sleekblue/node_modules/.pnpm/@tiptap+starter-kit@3.27.1/node_modules/@tiptap/starter-kit/dist/index.js",
-      "file": "@tiptap_starter-kit.js",
-      "fileHash": "38fd468b",
-      "needsInterop": false
-    },
     "react-dom": {
       "src": "../../sleekblue/node_modules/.pnpm/react-dom@19.2.7_react@19.2.7/node_modules/react-dom/index.js",
       "file": "react-dom.js",
-      "fileHash": "223f254b",
+      "fileHash": "a098980c",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../sleekblue/node_modules/.pnpm/react-dom@19.2.7_react@19.2.7/node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "2d9ccbf4",
+      "fileHash": "5b75a93b",
       "needsInterop": true
-    },
-    "react-icons/fa": {
-      "src": "../../sleekblue/node_modules/.pnpm/react-icons@5.7.0_react@19.2.7/node_modules/react-icons/fa/index.mjs",
-      "file": "react-icons_fa.js",
-      "fileHash": "99ff0545",
-      "needsInterop": false
-    },
-    "react-router-dom": {
-      "src": "../../sleekblue/node_modules/.pnpm/react-router-dom@7.18.1_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-router-dom/dist/index.mjs",
-      "file": "react-router-dom.js",
-      "fileHash": "4fcd2be6",
-      "needsInterop": false
     },
     "react": {
       "src": "../../sleekblue/node_modules/.pnpm/react@19.2.7/node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "ea85bb81",
+      "fileHash": "64cce4bf",
       "needsInterop": true
     },
     "react/jsx-dev-runtime": {
       "src": "../../sleekblue/node_modules/.pnpm/react@19.2.7/node_modules/react/jsx-dev-runtime.js",
       "file": "react_jsx-dev-runtime.js",
-      "fileHash": "d00bcf6e",
+      "fileHash": "9d44ac52",
       "needsInterop": true
     },
     "react/jsx-runtime": {
       "src": "../../sleekblue/node_modules/.pnpm/react@19.2.7/node_modules/react/jsx-runtime.js",
       "file": "react_jsx-runtime.js",
-      "fileHash": "f8bf3c6e",
+      "fileHash": "d648c3c6",
       "needsInterop": true
     }
   },
   "chunks": {
-    "dist-BdKi9BqS": {
-      "file": "dist-BdKi9BqS.js",
-      "isDynamicEntry": false
-    },
-    "dist-V793YTe_": {
-      "file": "dist-V793YTe_.js",
-      "isDynamicEntry": false
-    },
-    "dist-qUbT3S_Z": {
-      "file": "dist-qUbT3S_Z.js",
-      "isDynamicEntry": false
-    },
-    "rolldown-runtime-FDOR9p9I": {
-      "file": "rolldown-runtime-FDOR9p9I.js",
+    "rolldown-runtime-BvCyGRYZ": {
+      "file": "rolldown-runtime-BvCyGRYZ.js",
       "isDynamicEntry": false
     }
   }
