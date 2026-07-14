@@ -1,6 +1,75 @@
 {
   "events": [
     {
+      "id": "EVT-1784064506758-0I6RO",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://github.com/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "timestamp": "2026-07-14T21:28:26.006Z",
+      "ip": "105.127.16.87",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1784063519466-4KYT9",
+      "type": "pageview",
+      "page": "/store",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://bookish-system-4qj655xjj9x725x75.github.dev/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "timestamp": "2026-07-14T21:11:58.967Z",
+      "ip": "105.127.16.87",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
+      "id": "EVT-1784063373406-YPWBD",
+      "type": "pageview",
+      "page": "/",
+      "slug": "",
+      "name": "",
+      "qty": null,
+      "price": null,
+      "event": "",
+      "target": "",
+      "device": "desktop",
+      "referrer": "https://bookish-system-4qj655xjj9x725x75.github.dev/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "timestamp": "2026-07-14T21:09:32.980Z",
+      "ip": "105.127.16.87",
+      "location": {
+        "country": "Nigeria",
+        "city": "Kano",
+        "region": "Kano State",
+        "lat": 12.0001,
+        "lon": 8.51672
+      }
+    },
+    {
       "id": "EVT-1784060795756-JP27K",
       "type": "pageview",
       "page": "/",

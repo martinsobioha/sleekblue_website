@@ -102,12 +102,24 @@ async function geolocateIP(ip) {
   return { country: 'Unknown', city: '', region: '', lat: 0, lon: 0 }
 }
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
+
 if (!existsSync(ADMIN_CFG_FILE)) {
+  const initialPassword = ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? null : `dev-${generateId('ADMIN')}`)
+  if (!initialPassword && process.env.NODE_ENV === 'production') {
+    console.error('[FATAL] ADMIN_PASSWORD env var is not set. Set it before starting the server.')
+    process.exit(1)
+  }
   writeJSON(ADMIN_CFG_FILE, {
-    username: 'admin',
-    passwordHash: bcrypt.hashSync('Sleekblue2026!', 10),
+    username: ADMIN_USERNAME,
+    passwordHash: bcrypt.hashSync(initialPassword, 10),
   })
-  console.log('[Admin] Default credentials: admin / Sleekblue2026!')
+  if (initialPassword) {
+    console.log(`[Admin] Default credentials: ${ADMIN_USERNAME} / ${initialPassword}`)
+  } else {
+    console.log('[Admin] Admin credentials were not initialized because ADMIN_PASSWORD is not set.')
+  }
 }
 
 const app = express()
@@ -1418,16 +1430,29 @@ app.get('/api/product/views/:slug', (req, res) => {
   res.json({ slug, views7d })
 })
 
+// ── Health and deployment checks ───────────────────────────────────────────
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'sleekblue', timestamp: new Date().toISOString() })
+})
+
 // ── Serve React frontend (production build) ───────────────────────────────────
 const DIST_DIR = join(__dirname, 'dist')
 if (existsSync(DIST_DIR)) {
-  app.use(express.static(DIST_DIR))
+  app.use(express.static(DIST_DIR, {
+    maxAge: '1h',
+    immutable: false,
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache')
+      }
+    },
+  }))
   // All non-API routes → React app (handles client-side routing)
-  app.get('/{*splat}', (req, res) => {
+  app.get('{*splat}', (req, res) => {
     res.sendFile(join(DIST_DIR, 'index.html'))
   })
 } else {
-  app.get('/{*splat}', (req, res) => {
+  app.get('{*splat}', (req, res) => {
     res.status(503).json({ error: 'Frontend not built. Run: npm run build' })
   })
 }
