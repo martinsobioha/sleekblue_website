@@ -118,7 +118,10 @@ for (const dir of [RUNTIME_DIR, UPLOADS_DIR,
   fs.mkdirSync(dir, { recursive: true })
 }
 
-// ─── File-based DB ────────────────────────────────────────────────────────────
+// ─── File-based DB (hardened for single-process Hostinger) ───────────────────
+// Atomic writes via temp+rename. Critical keys (especially orders) are serialized
+// through an in-process queue so concurrent requests do not interleave writes.
+
 function readJson(filePath, defaultVal = {}) {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -132,21 +135,37 @@ function writeJson(filePath, data) {
   try {
     fs.writeFileSync(tmp, JSON.stringify(data, null, 2))
     fs.renameSync(tmp, filePath)
+    return true
   } catch (err) {
     console.error(`[DB WRITE ERROR] Failed to write ${filePath}:`, err.message)
     try { fs.unlinkSync(tmp) } catch {}
+    return false
   }
 }
 
 const runtimePath = (name) => path.join(RUNTIME_DIR, `${name}.json`)
 
+// Simple per-key write queue (single process only — perfect for Hostinger Business)
+const _writeQueues = new Map()
+function withWriteLock(key, fn) {
+  const prev = _writeQueues.get(key) || Promise.resolve()
+  const next = prev.then(() => fn()).catch((err) => {
+    console.error(`[WRITE LOCK] ${key}:`, err.message)
+  })
+  // Prevent unhandled rejection from breaking the chain
+  _writeQueues.set(key, next.catch(() => {}))
+  return next
+}
+
 // Site data helpers
 function getSiteData() { return readJson(DATA_FILE, {}) }
 function patchSiteData(patch) {
-  const data = getSiteData()
-  const merged = deepMerge(data, patch)
-  writeJson(DATA_FILE, merged)
-  return merged
+  return withWriteLock('site-data', () => {
+    const data = getSiteData()
+    const merged = deepMerge(data, patch)
+    writeJson(DATA_FILE, merged)
+    return merged
+  })
 }
 function deepMerge(target, source) {
   const out = { ...target }
@@ -165,7 +184,9 @@ function getRuntimeData(name, defaultVal = []) {
   return readJson(runtimePath(name), defaultVal)
 }
 function setRuntimeData(name, data) {
-  writeJson(runtimePath(name), data)
+  return withWriteLock(name, () => {
+    writeJson(runtimePath(name), data)
+  })
 }
 
 // ─── Admin Config ─────────────────────────────────────────────────────────────
@@ -204,18 +225,54 @@ app.use(helmet({
 }))
 app.use(compression())
 
+// ─── Concurrency guard (single-process Hostinger shield) ─────────────────────
+// Caps simultaneous in-flight HTTP requests so one traffic spike cannot exhaust
+// the 2 CPU / 3 GB shared plan. Excess clients get 503 + Retry-After instead of
+// hanging the process. Zero extra cost.
+const MAX_IN_FLIGHT = Number(process.env.MAX_IN_FLIGHT || 48)
+let inFlight = 0
+app.use((req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/api/ready') return next()
+  if (inFlight >= MAX_IN_FLIGHT) {
+    res.setHeader('Retry-After', '2')
+    return res.status(503).json({
+      ok: false,
+      error: 'Server is busy. Please try again in a moment.',
+      code: 'OVERLOADED',
+    })
+  }
+  inFlight += 1
+  const done = () => { inFlight = Math.max(0, inFlight - 1) }
+  res.on('finish', done)
+  res.on('close', done)
+  next()
+})
+
 // Rate limiting
-// Global API limit
 app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }))
-// Tighter limit on public write endpoints to reduce abuse
 const writeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many requests, please try again later' } })
 const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { ok: false, error: 'Too many password change attempts, please try again later' } })
+const analyticsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: true, skipped: true },
+})
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Too many order attempts, please try again later' },
+})
 
 app.use('/api/newsletter', writeLimiter)
 app.use('/api/subscribe-whatsapp', writeLimiter)
 app.use('/api/reviews/submit', writeLimiter)
 app.use('/api/referral/generate', writeLimiter)
 app.use('/api/upload/artwork', writeLimiter)
+app.use('/api/analytics/track', analyticsLimiter)
 app.use('/api/admin/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts' } }))
 
 // The `verify` callback captures the raw Buffer before JSON parsing — required
@@ -227,7 +284,13 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
 // Serve uploaded files
-app.use('/uploads', express.static(UPLOADS_DIR))
+app.use('/uploads', express.static(UPLOADS_DIR, {
+  maxAge: '7d',
+  etag: true,
+  setHeaders(res) {
+    res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
+  },
+}))
 // Serve attached assets
 app.use('/assets', express.static(path.join(__dirname, 'attached_assets')))
 
@@ -417,14 +480,21 @@ app.get('/api/blog/:slug', (req, res) => {
 })
 
 app.post('/api/blog/:slug/view', (req, res) => {
-  const d = getSiteData()
-  const posts = d.blogPosts || []
-  const idx = posts.findIndex(p => p.slug === req.params.slug)
-  if (idx >= 0) {
-    posts[idx].views = (posts[idx].views || 0) + 1
-    patchSiteData({ blogPosts: posts })
-  }
+  // Under ad traffic, never block the response on a view-counter write
   res.json({ ok: true })
+  const mem = process.memoryUsage().heapUsed / (1024 * 1024)
+  if (mem > 380 || inFlight > Math.floor(MAX_IN_FLIGHT * 0.85)) return
+  try {
+    const d = getSiteData()
+    const posts = d.blogPosts || []
+    const idx = posts.findIndex(p => p.slug === req.params.slug)
+    if (idx >= 0) {
+      posts[idx].views = (posts[idx].views || 0) + 1
+      patchSiteData({ blogPosts: posts })
+    }
+  } catch (err) {
+    console.error('[blog view] persist skipped:', err && err.message)
+  }
 })
 
 app.get('/api/blog/:slug/comments', (req, res) => {
@@ -487,17 +557,25 @@ app.post('/api/reviews/submit', (req, res) => {
   res.json({ ok: true })
 })
 
-// Analytics track — whitelist fields to prevent arbitrary data injection
+// Analytics track — fail-soft under memory/concurrency pressure (orders always win)
 const ANALYTICS_ALLOWED = ['type', 'slug', 'path', 'ref', 'name', 'value']
 app.post('/api/analytics/track', (req, res) => {
   const entry = { ts: Date.now(), ip: req.ip }
   for (const key of ANALYTICS_ALLOWED) {
     if (req.body[key] !== undefined) entry[key] = str(req.body[key], 200)
   }
-  const analytics = getRuntimeData('analytics', [])
-  analytics.unshift(entry)
-  if (analytics.length > 10000) analytics.splice(10000)
-  setRuntimeData('analytics', analytics)
+  const heapMB = process.memoryUsage().heapUsed / (1024 * 1024)
+  if (heapMB > 380 || inFlight > Math.floor(MAX_IN_FLIGHT * 0.85)) {
+    return res.json({ ok: true, skipped: true })
+  }
+  try {
+    const analytics = getRuntimeData('analytics', [])
+    analytics.unshift(entry)
+    if (analytics.length > 5000) analytics.splice(5000)
+    setRuntimeData('analytics', analytics)
+  } catch (err) {
+    console.error('[analytics] persist failed:', err && err.message)
+  }
   res.json({ ok: true })
 })
 
@@ -605,7 +683,7 @@ function computeServerTotal(items) {
 }
 
 // ─── Orders ────────────────────────────────────────────────────────────────────
-app.post('/api/orders/create', writeLimiter, (req, res) => {
+app.post('/api/orders/create', orderLimiter, async (req, res) => {
   const { items, customer, paymentMethod } = req.body
   if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ ok: false, error: 'Cart is empty' })
   
@@ -639,30 +717,40 @@ app.post('/api/orders/create', writeLimiter, (req, res) => {
     paystackData: null,
   }
 
-  const orders = getRuntimeData('orders', [])
-  orders.unshift(order)
-  if (orders.length > 5000) orders.splice(5000)
-  setRuntimeData('orders', orders)
+  // Serialize order writes to avoid interleaving on the file-based store
+  await withWriteLock('orders', () => {
+    const orders = getRuntimeData('orders', [])
+    orders.unshift(order)
+    if (orders.length > 5000) orders.splice(5000)
+    writeJson(runtimePath('orders'), orders)
+  })
   logActivity('order_created', `${ref} — ₦${total}`)
 
   res.json({ ok: true, orderId: order.id, ref, total, amountKobo: order.amountKobo })
 })
 
-app.patch('/api/orders/:ref/status', requireAuth, (req, res) => {
+app.patch('/api/orders/:ref/status', requireAuth, async (req, res) => {
   const { status } = req.body
   if (!['pending', 'paid', 'cancelled', 'refunded'].includes(status)) return res.status(400).json({ error: 'Invalid status' })
-  const orders = getRuntimeData('orders', [])
-  const idx = orders.findIndex(o => o.ref === req.params.ref)
-  if (idx < 0) return res.status(404).json({ error: 'Order not found' })
-  orders[idx].status = status
-  if (status === 'paid') orders[idx].paidAt = new Date().toISOString()
-  setRuntimeData('orders', orders)
+
+  let found = false
+  await withWriteLock('orders', () => {
+    const orders = getRuntimeData('orders', [])
+    const idx = orders.findIndex(o => o.ref === req.params.ref)
+    if (idx < 0) return
+    found = true
+    orders[idx].status = status
+    if (status === 'paid') orders[idx].paidAt = new Date().toISOString()
+    writeJson(runtimePath('orders'), orders)
+  })
+
+  if (!found) return res.status(404).json({ error: 'Order not found' })
   logActivity('order_status_updated', `${req.params.ref} → ${status}`)
   res.json({ ok: true })
 })
 
 // ─── Paystack Webhook ─────────────────────────────────────────────────────────
-app.post('/api/webhooks/paystack', (req, res) => {
+app.post('/api/webhooks/paystack', async (req, res) => {
   const sig = req.headers['x-paystack-signature']
   if (!PAYSTACK_SECRET_KEY || !sig || !req.rawBody) return res.status(400).json({ error: 'Webhook unconfigured or invalid' })
 
@@ -674,36 +762,39 @@ app.post('/api/webhooks/paystack', (req, res) => {
   }
 
   const event = req.body
-  res.json({ ok: true }) // Acknowledge early
+  // Acknowledge immediately so Paystack does not retry while we process
+  res.json({ ok: true })
 
   if (event.event !== 'charge.success' || event.data?.status !== 'success') return
 
   const ref = event.data?.reference
   if (!ref) return
 
-  const orders = getRuntimeData('orders', [])
-  const idx = orders.findIndex(o => o.ref === ref)
-  if (idx < 0 || orders[idx].status === 'paid') return
+  await withWriteLock('orders', () => {
+    const orders = getRuntimeData('orders', [])
+    const idx = orders.findIndex(o => o.ref === ref)
+    if (idx < 0 || orders[idx].status === 'paid') return
 
-  const chargedKobo = event.data?.amount
-  if (chargedKobo !== orders[idx].amountKobo) {
-    orders[idx].status = 'amount_mismatch'
-    orders[idx].paystackData = event.data
-    setRuntimeData('orders', orders)
-    logActivity('order_amount_mismatch', `${ref}`)
-    return
-  }
+    const chargedKobo = event.data?.amount
+    if (chargedKobo !== orders[idx].amountKobo) {
+      orders[idx].status = 'amount_mismatch'
+      orders[idx].paystackData = event.data
+      writeJson(runtimePath('orders'), orders)
+      logActivity('order_amount_mismatch', `${ref}`)
+      return
+    }
 
-  orders[idx].status = 'paid'
-  orders[idx].paidAt = new Date().toISOString()
-  orders[idx].paystackData = {
-    id: event.data?.id,
-    channel: event.data?.channel,
-    currency: event.data?.currency,
-    paidAt: event.data?.paid_at,
-  }
-  setRuntimeData('orders', orders)
-  logActivity('order_paid', `${ref}`)
+    orders[idx].status = 'paid'
+    orders[idx].paidAt = new Date().toISOString()
+    orders[idx].paystackData = {
+      id: event.data?.id,
+      channel: event.data?.channel,
+      currency: event.data?.currency,
+      paidAt: event.data?.paid_at,
+    }
+    writeJson(runtimePath('orders'), orders)
+    logActivity('order_paid', `${ref}`)
+  })
 })
 
 // ─── Admin Auth ────────────────────────────────────────────────────────────────
@@ -1248,8 +1339,20 @@ function getHealthInfo() {
       filesInDist = fs.readdirSync(DIST_DIR).slice(0, 20)
     }
   } catch { /* ignore */ }
+
+  const mem = process.memoryUsage()
   return {
     ok: true,
+    status: 'alive',
+    uptimeSeconds: Math.floor(process.uptime()),
+    node: process.version,
+    env: process.env.NODE_ENV || 'development',
+    memory: {
+      rssMB: Math.round(mem.rss / 1024 / 1024),
+      heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    paystackConfigured: Boolean(PAYSTACK_SECRET_KEY),
     cwd: process.cwd(),
     dirname: __dirname,
     distDir: DIST_DIR,
@@ -1258,12 +1361,27 @@ function getHealthInfo() {
     indexExists,
     candidates,
     filesInDist,
+    timestamp: new Date().toISOString(),
   }
 }
 
 // GET /api/health — public diagnostic endpoint (no auth required)
+// Used by Hostinger / uptime monitors / operators. Keep it fast and allocation-light.
 app.get('/api/health', (req, res) => {
-  res.json(getHealthInfo())
+  res.setHeader('Cache-Control', 'no-store')
+  const info = getHealthInfo()
+  info.inFlight = inFlight
+  info.maxInFlight = MAX_IN_FLIGHT
+  res.json(info)
+})
+
+// Ultra-light liveness for uptime pings under ad traffic
+app.get('/api/ready', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  if (inFlight >= MAX_IN_FLIGHT) {
+    return res.status(503).json({ ok: false, ready: false, inFlight })
+  }
+  res.json({ ok: true, ready: true, inFlight, uptimeSeconds: Math.floor(process.uptime()) })
 })
 
 // ─── Serve Frontend ────────────────────────────────────────────────────────────
@@ -1330,8 +1448,42 @@ if (distExists) {
   }))
 }
 
+// ─── Process Resilience (Hostinger Business / single-process hardening) ───────
+// Keep the process from dying silently and give PM2 a clean signal so it can
+// restart us cleanly. Zero extra cost. Critical on shared hosting.
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err && err.stack ? err.stack : err)
+  // Exit so PM2 brings up a clean process. Do not continue after unknown state.
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason)
+  process.exit(1)
+})
+
+let isShuttingDown = false
+function gracefulShutdown(signal) {
+  if (isShuttingDown) return
+  isShuttingDown = true
+  console.log(`[Sleekblue API] Received ${signal} — shutting down gracefully...`)
+  server.close(() => {
+    console.log('[Sleekblue API] HTTP server closed')
+    process.exit(0)
+  })
+  // Force exit if close hangs (Hostinger can be aggressive with signals)
+  setTimeout(() => {
+    console.error('[Sleekblue API] Forced exit after graceful timeout')
+    process.exit(1)
+  }, 7000).unref()
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`[Sleekblue API] Running on http://0.0.0.0:${PORT}`)
   console.log(`[Sleekblue API] NODE_ENV=${process.env.NODE_ENV || 'development'}`)
   console.log(`[Sleekblue API] Admin username: ${ADMIN_USERNAME}`)
@@ -1346,4 +1498,11 @@ app.listen(PORT, '0.0.0.0', () => {
   if (!health.indexExists) console.warn('[Sleekblue API] ⚠ Frontend not built or dist path is wrong — SPA routes will return 503')
   if (!process.env.JWT_SECRET) console.warn('[Sleekblue API] ⚠ JWT_SECRET not set in environment!')
   if (!process.env.ADMIN_PASSWORD) console.warn('[Sleekblue API] ⚠ ADMIN_PASSWORD not set in environment!')
+  if (!PAYSTACK_SECRET_KEY) console.warn('[Sleekblue API] ⚠ PAYSTACK_SECRET_KEY not set — webhooks will be rejected')
 })
+
+// Bound timeouts to protect the single process under slow clients / load
+server.keepAliveTimeout = 65_000
+server.headersTimeout = 70_000
+server.requestTimeout = 30_000
+server.timeout = 60_000

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PRI, PRI_LIGHT, ACC, SIDEBAR_W, authH, fmt, Card, Btn, Input, Badge, SaveBar } from './AdminUI';
 import { ALL_PRODUCTS, STICKER_SIZE_PRICES, getProductDetails } from '../../data/products';
-import { AnalyticsView, ReportsView } from '../../components/AdminAnalytics';
 import TiptapEditor from '../../components/TiptapEditor';
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.webp';
 
@@ -29,65 +28,43 @@ export function BlogPostEditor({ token, post, onSaved, onCancel }) {
     setUploading(false)
     if (!json.url) return
     if (field === 'coverImage') set('coverImage', json.url)
-    else if (field === 'audioUrl') set('audioUrl', json.url)
-    else set('mediaFiles', [...(form.mediaFiles || []), json.url])
+    else if (field === 'media') setForm(p => ({ ...p, mediaFiles: [...(p.mediaFiles || []), json.url] }))
   }
 
-  async function handleSave(statusOverride) {
+  async function handleSave(status) {
     setSaving(true); setMsg(null)
-    const payload = {
-      ...form,
-      status: statusOverride || form.status,
-      tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      slug: form.slug || slugify(form.title),
-    }
+    const payload = { ...form, status: status || form.status, tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [] }
+    if (!payload.slug && payload.title) payload.slug = slugify(payload.title)
     const url = isNew ? '/api/admin/blog' : `/api/admin/blog/${post.id}`
     const method = isNew ? 'POST' : 'PUT'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) })
-    const json = await res.json()
     setSaving(false)
-    if (json.ok) onSaved()
-    else setMsg(json.error || 'Failed to save')
+    if (res.ok) { setMsg('Saved'); onSaved?.() } else setMsg('Save failed')
   }
 
   return (
-    <Card style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0 }}>{isNew ? 'New Blog Post' : 'Edit Post'}</h2>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Btn onClick={onCancel} variant="secondary">Cancel</Btn>
-          <Btn onClick={() => handleSave('draft')} disabled={saving || uploading} variant="secondary">Save Draft</Btn>
-          <Btn onClick={() => handleSave('published')} disabled={saving || uploading}>Publish</Btn>
-        </div>
+    <Card>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <Btn onClick={() => handleSave('draft')} disabled={saving || uploading} variant="secondary">Save Draft</Btn>
+        <Btn onClick={() => handleSave('published')} disabled={saving || uploading}>Publish</Btn>
+        <Btn onClick={onCancel} variant="secondary">Cancel</Btn>
       </div>
-      {msg && <div style={{ color: '#EF4444', marginBottom: '12px' }}>{msg}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Input label="Title" value={form.title} onChange={e => { set('title', e.target.value); if (isNew) set('slug', slugify(e.target.value)) }} placeholder="Post Title..." />
-          <Input label="URL Slug" value={form.slug} onChange={e => set('slug', slugify(e.target.value))} />
-          <Input label="Excerpt" value={form.excerpt} onChange={e => set('excerpt', e.target.value)} multiline rows={2} />
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>Content</label>
-            <TiptapEditor value={form.content} onChange={html => set('content', html)} />
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Printing, Branding" />
-          <Input label="Tags (comma separated)" value={form.tags} onChange={e => set('tags', e.target.value)} placeholder="diecut, stickers" />
-          <Input label="Publish Date" type="date" value={form.date} onChange={e => set('date', e.target.value)} />
-          <Input label="Author Name" value={form.authorName} onChange={e => set('authorName', e.target.value)} />
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>Cover Image</label>
-            {form.coverImage && <img src={form.coverImage} alt="Cover" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '6px', marginBottom: '8px' }} />}
-            <input type="file" accept="image/*" onChange={e => e.target.files[0] && uploadMedia(e.target.files[0], 'coverImage')} disabled={uploading} />
-          </div>
-        </div>
+      {msg && <p>{msg}</p>}
+      <Input label="Title" value={form.title} onChange={e => set('title', e.target.value)} />
+      <Input label="Slug" value={form.slug} onChange={e => set('slug', e.target.value)} />
+      <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} />
+      <Input label="Excerpt" value={form.excerpt} onChange={e => set('excerpt', e.target.value)} />
+      <div>
+        <label>Cover image</label>
+        <input type="file" accept="image/*" onChange={e => e.target.files[0] && uploadMedia(e.target.files[0], 'coverImage')} disabled={uploading} />
+        {form.coverImage && <img src={form.coverImage} alt="" style={{ maxWidth: 200 }} />}
       </div>
+      <TiptapEditor value={form.content} onChange={v => set('content', v)} />
     </Card>
   )
 }
 
-export default function BlogCMS({ token }) {
+export default function BlogCMS({ token, onDataChanged }) {
   const [posts, setPosts] = useState([])
   const [editingPost, setEditingPost] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -103,10 +80,11 @@ export default function BlogCMS({ token }) {
     if (!confirm('Are you sure you want to delete this post?')) return
     await fetch(`/api/admin/blog/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
     loadPosts()
+    onDataChanged?.()
   }
 
   if (isEditing) {
-    return <BlogPostEditor token={token} post={editingPost} onSaved={() => { setIsEditing(false); setEditingPost(null); loadPosts() }} onCancel={() => { setIsEditing(false); setEditingPost(null) }} />
+    return <BlogPostEditor token={token} post={editingPost} onSaved={() => { setIsEditing(false); setEditingPost(null); loadPosts(); onDataChanged?.() }} onCancel={() => { setIsEditing(false); setEditingPost(null) }} />
   }
 
   return (

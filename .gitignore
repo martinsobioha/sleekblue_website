@@ -23,6 +23,10 @@ uploads/
 .env.local
 .env.*.local
 
+# ─── Logs & local backups (server-only) ───────────────────────────────────────
+logs/
+backups/
+
 # ─── Replit internals ──────────────────────────────────────────────────────────
 .vitecache/
 .cache/

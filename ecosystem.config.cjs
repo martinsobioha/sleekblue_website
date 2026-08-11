@@ -24,16 +24,25 @@ module.exports = {
 
       // Restart on crash, with a short delay to avoid hammering the host
       autorestart: true,
-      restart_delay: 3000,
+      restart_delay: 4000,
+      max_restarts: 15,
+      min_uptime: '10s',
       watch: false,
-      max_memory_restart: '512M',
+
+      // Keep memory under control on shared Hostinger Business plan (3 GB RAM)
+      max_memory_restart: '450M',
+
+      // Kill timeout — give the process time to finish in-flight requests
+      kill_timeout: 8000,
+      listen_timeout: 10000,
 
       // Log files (relative to project root).
       // The logs/ directory must exist before PM2 starts — run `mkdir -p logs` first.
       out_file: './logs/out.log',
       error_file: './logs/error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      log_rotate: true,
+      merge_logs: true,
+      time: true,
     },
   ],
 }

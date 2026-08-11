@@ -1,9 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, no-unused-vars, no-empty, no-dupe-keys */
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import logo from '@assets/SLEEKBLUE_LOGO_1779927359068.webp'
 import { ALL_PRODUCTS } from '../data/products'
 
-// Heavy components — lazy-loaded so they don't inflate the main AdminPage chunk
 const DashboardView = lazy(() => import('./admin/Dashboard').then(m => ({ default: m.DashboardView })))
 const PageEditorView = lazy(() => import('./admin/PageEditor').then(m => ({ default: m.PageEditorView })))
 const ImageManager = lazy(() => import('./admin/ImageManager').then(m => ({ default: m.ImageManager })))
@@ -59,17 +58,21 @@ const NAV_ITEMS = [
   { id: 'activity-log',    icon: '📜', label: 'Activity Log' },
 ]
 
-// ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem('sbm_admin_token') || '')
   const [view, setView] = useState('dashboard')
   const [siteData, setSiteData] = useState({ settings: {}, productOverrides: {}, stickerPriceOverrides: {}, acceptances: [], content: {}, blogPosts: [], heroSlides: 0, leads: [] })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const hasLoadedOnce = useRef(false)
 
   const fetchAll = useCallback(async (tok = token) => {
     if (!tok) return
-    setLoading(true)
+    if (hasLoadedOnce.current) setRefreshing(true)
+    else setLoading(true)
+    setFetchError(null)
     try {
       const [dataRes, accRes, contentRes, blogRes, heroRes, leadsRes] = await Promise.all([
         fetch('/api/admin/site-data', { headers: { Authorization: `Bearer ${tok}` } }),
@@ -102,8 +105,13 @@ export default function AdminPage() {
         heroSlides:           (heroData.customSlides || []).length,
         leads:                Array.isArray(leads) ? leads : [],
       })
-    } catch {} finally {
+      hasLoadedOnce.current = true
+    } catch (err) {
+      console.error('[Admin] fetchAll failed:', err)
+      setFetchError('Failed to load admin data. Check your connection and try again.')
+    } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [token])
 
@@ -168,13 +176,22 @@ export default function AdminPage() {
           >Out</button>
         </header>
         <main className="flex-1 bg-slate-100 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {fetchError && (
+            <div className="mb-4 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <span>{fetchError}</span>
+              <button type="button" onClick={() => fetchAll()} className="ml-4 font-semibold underline">Retry</button>
+            </div>
+          )}
+          {refreshing && (
+            <div className="mb-3 text-xs font-medium text-slate-400 animate-pulse">Refreshing data…</div>
+          )}
           <Suspense fallback={<div className="text-center py-16 text-slate-500 animate-pulse">Loading module...</div>}>
             {view === 'dashboard'      && (loading ? <div className="text-center py-16 text-slate-500">Loading...</div> : <DashboardView siteData={siteData} />)}
             {view === 'page-editor'    && <PageEditorView token={token} />}
             {view === 'image-manager'  && <ImageManager token={token} />}
             {view === 'products'       && <ProductsView token={token} productOverrides={siteData.productOverrides} onDataChanged={fetchAll} />}
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
-            {view === 'blog'           && <BlogView token={token} posts={siteData.blogPosts} onDataChanged={fetchAll} />}
+            {view === 'blog'           && <BlogView token={token} onDataChanged={fetchAll} />}
             {view === 'about'          && <AboutView token={token} />}
             {view === 'faq'            && <FaqView token={token} />}
             {view === 'seo'            && <SeoView token={token} />}

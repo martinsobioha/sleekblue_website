@@ -1,0 +1,44 @@
+# Auto-deploy to Hostinger when code is pushed to main.
+# ONE-TIME SETUP (GitHub → Settings → Secrets and variables → Actions):
+#   HOSTINGER_HOST      e.g. 123.456.789.10  or  ssh.yourdomain.com
+#   HOSTINGER_USER      SSH username
+#   HOSTINGER_SSH_KEY   private key (full PEM, including BEGIN/END lines)
+#   HOSTINGER_APP_PATH  absolute path to the app on the server
+#                       e.g. /home/u123/domains/sleekbluemediahouz.com/public_html
+#
+# Optional:
+#   HOSTINGER_PORT      SSH port (default 22)
+#
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # allows manual "Run workflow" button in Actions tab
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT || 22 }}
+          script_stop: true
+          command_timeout: 15m
+          script: |
+            set -e
+            APP="${{ secrets.HOSTINGER_APP_PATH }}"
+            if [ -z "$APP" ]; then
+              echo "HOSTINGER_APP_PATH secret is empty — set it in GitHub Secrets"
+              exit 1
+            fi
+            cd "$APP"
+            bash scripts/deploy.sh

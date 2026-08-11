@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ALL_PRODUCTS } from '../data/products.js'
 import Breadcrumb from '../components/Breadcrumb.jsx'
@@ -25,6 +25,20 @@ export default function PriceListPage() {
     description: 'View our full printable price list for stickers, banners, business cards, T-shirts, vehicle branding and more. Best printing prices in Nigeria.',
     canonical: 'https://sleekbluemediahouz.com/price-list',
   })
+
+  const [products, setProducts] = useState(ALL_PRODUCTS)
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.ok ? r.json() : {})
+      .then(data => {
+        const overrides = data?.productOverrides || {}
+        setProducts(ALL_PRODUCTS.map(p => {
+          const o = overrides[p.slug]
+          return o ? { ...p, ...o } : p
+        }))
+      })
+      .catch(() => {})
+  }, [])
 
   const crumbs = [{ label: 'Home', path: '/' }, { label: 'Price List' }]
 
@@ -65,10 +79,10 @@ export default function PriceListPage() {
         </div>
 
         {PRODUCT_CATEGORIES.map(cat => {
-          const products = cat.slugs
-            .map(slug => ALL_PRODUCTS.find(p => p.slug === slug))
+          const catProducts = cat.slugs
+            .map(slug => products.find(p => p.slug === slug))
             .filter(Boolean)
-          if (!products.length) return null
+          if (!catProducts.length) return null
 
           return (
             <div key={cat.label} className="mb-8">
@@ -87,7 +101,7 @@ export default function PriceListPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map((product, i) => {
+                    {catProducts.map((product, i) => {
                       const firstTier = product.priceTable?.[0]
                       const startPrice = firstTier ? firstTier.unitPrice * firstTier.qty : product.price || 0
                       const unitPrice = firstTier?.unitPrice || 0

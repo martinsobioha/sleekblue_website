@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#7B2FBE",
-  "background_color": "#ffffff",
+  "theme_color": "#2B3BAA",
+  "background_color": "#000000",
   "categories": ["shopping", "business"],
   "lang": "en-NG",
   "icons": [
@@ -15,7 +15,13 @@
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [],
