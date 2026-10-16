@@ -558,12 +558,22 @@ app.post('/api/reviews/submit', (req, res) => {
 })
 
 // Analytics track — fail-soft under memory/concurrency pressure (orders always win)
-const ANALYTICS_ALLOWED = ['type', 'slug', 'path', 'ref', 'name', 'value']
+const ANALYTICS_ALLOWED = [
+  'type', 'slug', 'path', 'page', 'ref', 'name', 'value', 'qty', 'price',
+  'device', 'referrer', 'details', 'event', 'target',
+]
 app.post('/api/analytics/track', (req, res) => {
   const entry = { ts: Date.now(), ip: req.ip }
   for (const key of ANALYTICS_ALLOWED) {
-    if (req.body[key] !== undefined) entry[key] = str(req.body[key], 200)
+    if (req.body[key] !== undefined && req.body[key] !== null) {
+      entry[key] = typeof req.body[key] === 'number' ? req.body[key] : str(String(req.body[key]), 300)
+    }
   }
+  // Normalize client field names / types
+  if (!entry.path && entry.page) entry.path = entry.page
+  if (entry.type === 'pageview') entry.type = 'page_view'
+  if (entry.qty != null) entry.qty = Math.max(1, parseInt(entry.qty, 10) || 1)
+
   const heapMB = process.memoryUsage().heapUsed / (1024 * 1024)
   if (heapMB > 380 || inFlight > Math.floor(MAX_IN_FLIGHT * 0.85)) {
     return res.json({ ok: true, skipped: true })
@@ -747,6 +757,173 @@ app.patch('/api/orders/:ref/status', requireAuth, async (req, res) => {
   if (!found) return res.status(404).json({ error: 'Order not found' })
   logActivity('order_status_updated', `${req.params.ref} → ${status}`)
   res.json({ ok: true })
+})
+
+
+// ─── Verify Paystack payment for a single order (admin) ───────────────────────
+// Use when webhook was missed. Calls Paystack Transaction Verify API.
+app.post('/api/admin/orders/:ref/verify-paystack', requireAuth, async (req, res) => {
+  if (!PAYSTACK_SECRET_KEY) {
+    return res.status(503).json({ ok: false, error: 'PAYSTACK_SECRET_KEY not configured' })
+  }
+
+  const ref = str(req.params.ref || '', 80)
+  if (!ref) return res.status(400).json({ ok: false, error: 'Missing order ref' })
+
+  const orders = getRuntimeData('orders', [])
+  const order = orders.find(o => o.ref === ref)
+  if (!order) return res.status(404).json({ ok: false, error: 'Order not found' })
+  if (order.paymentMethod !== 'paystack') {
+    return res.status(400).json({ ok: false, error: 'Only Paystack orders can be verified this way' })
+  }
+  if (order.status === 'paid') {
+    return res.json({ ok: true, alreadyPaid: true, status: 'paid', order })
+  }
+
+  let paystackRes
+  try {
+    paystackRes = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+  } catch (err) {
+    return res.status(502).json({ ok: false, error: 'Could not reach Paystack', detail: String(err?.message || err) })
+  }
+
+  const body = await paystackRes.json().catch(() => ({}))
+  if (!paystackRes.ok || !body.status) {
+    return res.status(400).json({
+      ok: false,
+      error: body.message || 'Paystack verification failed',
+      paystack: body,
+    })
+  }
+
+  const data = body.data || {}
+  if (data.status !== 'success') {
+    return res.json({
+      ok: true,
+      paid: false,
+      status: data.status || 'unknown',
+      message: `Paystack reports status: ${data.status || 'unknown'} (not success)`,
+      paystack: { status: data.status, amount: data.amount, channel: data.channel },
+    })
+  }
+
+  const chargedKobo = data.amount
+  let resultStatus = 'paid'
+  let updated = null
+
+  await withWriteLock('orders', () => {
+    const list = getRuntimeData('orders', [])
+    const idx = list.findIndex(o => o.ref === ref)
+    if (idx < 0) return
+    if (list[idx].status === 'paid') {
+      updated = list[idx]
+      return
+    }
+    if (chargedKobo !== list[idx].amountKobo) {
+      list[idx].status = 'amount_mismatch'
+      resultStatus = 'amount_mismatch'
+      list[idx].paystackData = data
+      writeJson(runtimePath('orders'), list)
+      logActivity('order_amount_mismatch', `${ref} (verify)`)
+      updated = list[idx]
+      return
+    }
+    list[idx].status = 'paid'
+    list[idx].paidAt = data.paid_at || new Date().toISOString()
+    list[idx].paystackData = {
+      id: data.id,
+      channel: data.channel,
+      currency: data.currency,
+      paidAt: data.paid_at,
+      verifiedAt: new Date().toISOString(),
+    }
+    writeJson(runtimePath('orders'), list)
+    logActivity('order_paid', `${ref} (verify)`)
+    updated = list[idx]
+  })
+
+  if (!updated) return res.status(404).json({ ok: false, error: 'Order not found during update' })
+
+  res.json({
+    ok: true,
+    paid: resultStatus === 'paid',
+    status: resultStatus,
+    order: updated,
+    message: resultStatus === 'paid'
+      ? 'Payment confirmed with Paystack. Order marked paid.'
+      : resultStatus === 'amount_mismatch'
+        ? 'Paystack charged a different amount than this order total.'
+        : 'Updated',
+  })
+})
+
+// ─── Bulk verify all pending Paystack orders ──────────────────────────────────
+app.post('/api/admin/orders/verify-paystack-pending', requireAuth, async (req, res) => {
+  if (!PAYSTACK_SECRET_KEY) {
+    return res.status(503).json({ ok: false, error: 'PAYSTACK_SECRET_KEY not configured' })
+  }
+
+  const pending = getRuntimeData('orders', []).filter(
+    o => o.paymentMethod === 'paystack' && o.status === 'pending'
+  )
+  const results = []
+
+  for (const order of pending.slice(0, 50)) {
+    try {
+      const paystackRes = await fetch(
+        `https://api.paystack.co/transaction/verify/${encodeURIComponent(order.ref)}`,
+        { headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` } }
+      )
+      const body = await paystackRes.json().catch(() => ({}))
+      const data = body.data || {}
+      if (!body.status || data.status !== 'success') {
+        results.push({ ref: order.ref, paid: false, status: data.status || 'not_found' })
+        continue
+      }
+      let final = 'pending'
+      await withWriteLock('orders', () => {
+        const list = getRuntimeData('orders', [])
+        const idx = list.findIndex(o => o.ref === order.ref)
+        if (idx < 0 || list[idx].status === 'paid') return
+        if (data.amount !== list[idx].amountKobo) {
+          list[idx].status = 'amount_mismatch'
+          list[idx].paystackData = data
+          final = 'amount_mismatch'
+        } else {
+          list[idx].status = 'paid'
+          list[idx].paidAt = data.paid_at || new Date().toISOString()
+          list[idx].paystackData = {
+            id: data.id,
+            channel: data.channel,
+            currency: data.currency,
+            paidAt: data.paid_at,
+            verifiedAt: new Date().toISOString(),
+          }
+          final = 'paid'
+          logActivity('order_paid', `${order.ref} (bulk-verify)`)
+        }
+        writeJson(runtimePath('orders'), list)
+      })
+      results.push({ ref: order.ref, paid: final === 'paid', status: final })
+    } catch (err) {
+      results.push({ ref: order.ref, paid: false, status: 'error', error: String(err?.message || err) })
+    }
+  }
+
+  res.json({
+    ok: true,
+    checked: results.length,
+    paidCount: results.filter(r => r.paid).length,
+    results,
+  })
 })
 
 // ─── Paystack Webhook ─────────────────────────────────────────────────────────
@@ -1207,8 +1384,98 @@ app.delete('/api/admin/referrals/:id', requireAuth, (req, res) => {
 // ─── Admin — Analytics ────────────────────────────────────────────────────────
 app.get('/api/admin/analytics', requireAuth, (_, res) => {
   const analytics = getRuntimeData('analytics', [])
-  const security = analytics.filter(e => e.type === 'security_event')
-  res.json({ events: analytics.slice(0, 200), security })
+  const pageViews = {}
+  const productViews = {}
+  const cartAdds = {}
+  const quoteRequests = []
+  const locationMap = {}
+  const deviceMap = {}
+  const referrerMap = {}
+  const hourMap = {}
+  const dailyMap = {}
+  const visitorKeys = new Set()
+  const securityEvents = []
+  const recentEvents = []
+
+  for (const e of analytics) {
+    const type = e.type === 'pageview' ? 'page_view' : e.type
+    const path = e.path || e.page || '/'
+    const day = e.ts ? new Date(e.ts).toISOString().slice(0, 10) : null
+    const hour = e.ts ? new Date(e.ts).getHours() : null
+    const device = e.device || 'unknown'
+    const loc = e.location || (e.city && e.country ? `${e.city}, ${e.country}` : e.country) || null
+
+    if (e.ip) visitorKeys.add(String(e.ip))
+    if (device) deviceMap[device] = (deviceMap[device] || 0) + 1
+    if (hour != null) hourMap[hour] = (hourMap[hour] || 0) + 1
+    if (day) dailyMap[day] = (dailyMap[day] || 0) + 1
+    if (loc) locationMap[loc] = (locationMap[loc] || 0) + 1
+    if (e.referrer) {
+      try {
+        const host = new URL(e.referrer).hostname || e.referrer
+        referrerMap[host] = (referrerMap[host] || 0) + 1
+      } catch {
+        referrerMap[e.referrer] = (referrerMap[e.referrer] || 0) + 1
+      }
+    }
+
+    if (type === 'page_view') {
+      pageViews[path] = (pageViews[path] || 0) + 1
+    } else if (type === 'product_view') {
+      const slug = e.slug || 'unknown'
+      if (!productViews[slug]) productViews[slug] = { name: e.name || slug, count: 0 }
+      productViews[slug].count += 1
+      if (e.name) productViews[slug].name = e.name
+    } else if (type === 'cart_add') {
+      const slug = e.slug || 'unknown'
+      if (!cartAdds[slug]) cartAdds[slug] = { name: e.name || slug, count: 0, qty: 0 }
+      cartAdds[slug].count += 1
+      cartAdds[slug].qty += Number(e.qty) || 1
+      if (e.name) cartAdds[slug].name = e.name
+    } else if (type === 'quote_request') {
+      quoteRequests.push({
+        slug: e.slug,
+        details: e.details,
+        timestamp: e.ts ? new Date(e.ts).toISOString() : null,
+        device: e.device,
+        location: loc ? { country: loc } : null,
+      })
+    } else if (type === 'security_event') {
+      securityEvents.push(e)
+    }
+
+    if (recentEvents.length < 30) {
+      recentEvents.push({
+        type: type || e.type,
+        slug: e.slug,
+        name: e.name,
+        page: path,
+        device: e.device,
+        location: loc ? { city: '', country: loc } : null,
+        timestamp: e.ts ? new Date(e.ts).toISOString() : null,
+      })
+    }
+  }
+
+  res.json({
+    totalEvents: analytics.length,
+    totalPageViews: Object.values(pageViews).reduce((a, b) => a + b, 0),
+    uniqueVisitors: visitorKeys.size,
+    pageViews,
+    productViews,
+    cartAdds,
+    quoteRequests,
+    locationMap,
+    deviceMap,
+    referrerMap,
+    hourMap,
+    dailyMap,
+    recentEvents,
+    securityEvents,
+    // backward compatible
+    events: analytics.slice(0, 200),
+    security: securityEvents,
+  })
 })
 
 app.delete('/api/admin/analytics/clear', requireAuth, (_, res) => {

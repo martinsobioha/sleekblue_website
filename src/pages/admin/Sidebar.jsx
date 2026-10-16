@@ -10,7 +10,9 @@ const NAV_ITEMS = [
   { id: 'page-editor',     icon: '🧩', label: 'Page Editor' },
   { id: 'image-manager',   icon: '🖼️', label: 'Image Manager' },
   { id: 'products',        icon: '🛍️', label: 'Products' },
+  { id: 'orders',          icon: '🛒', label: 'Orders' },
   { id: 'sticker-prices',  icon: '🏷️', label: 'Sticker Prices' },
+  { id: 'business-book',   icon: '📒', label: 'Business Book' },
   { id: 'blog',            icon: '✍️', label: 'Blog' },
   { id: 'about',           icon: '📖', label: 'About Us' },
   { id: 'content',         icon: '🎨', label: 'Content CMS' },
@@ -39,23 +41,24 @@ export function SidebarInner({ view, setView, counts, onLogout, onClose }) {
         <img src={logo} alt="Sleekblue" className="mx-auto h-10 rounded-xl bg-white p-1" />
         <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-white/75">Admin Panel</p>
       </div>
-      <nav className="flex-1 overflow-y-auto py-3">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {NAV_ITEMS.map(item => {
           const active = view === item.id
-          const badge = item.id === 'products' ? counts.products
-            : item.id === 'acceptances' ? counts.acceptances
-            : item.id === 'blog' ? counts.blogPosts || 0
-            : item.id === 'leads' ? counts.leads || 0
-            : 0
+          const badge = counts?.[item.id]
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => { setView(item.id); onClose?.() }}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${active ? 'bg-white/15 border-l-4 border-white text-white font-semibold shadow-sm' : 'border-l-4 border-transparent text-white hover:bg-white/10 hover:text-white'}`}>
-              <span className="text-lg flex-shrink-0">{item.icon}</span>
-              <span className="flex-1 text-sm">{item.label}</span>
-              {badge > 0 && <span className="rounded-full bg-[#FF6B00] px-2 py-0.5 text-[10px] font-semibold text-white">{badge}</span>}
+              className={`w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${
+                active ? 'bg-white text-[#5B4BC4] shadow-sm' : 'text-white/90 hover:bg-white/10'
+              }`}
+            >
+              <span className="text-base leading-none">{item.icon}</span>
+              <span className="flex-1 truncate">{item.label}</span>
+              {badge != null && badge > 0 && (
+                <span className="rounded-full bg-[#FF6B00] px-2 py-0.5 text-[10px] font-semibold text-white">{badge}</span>
+              )}
             </button>
           )
         })}
@@ -70,33 +73,21 @@ export function SidebarInner({ view, setView, counts, onLogout, onClose }) {
 export function Sidebar({ view, setView, counts, onLogout, isOpen, onClose }) {
   return (
     <>
-      {/* Desktop: always-visible fixed sidebar */}
       <div className="hidden lg:flex w-[220px] min-h-screen flex-shrink-0 flex-col shadow-inner shadow-slate-900/30">
         <SidebarInner view={view} setView={setView} counts={counts} onLogout={onLogout} />
       </div>
-
-      {/* Mobile: backdrop + slide-in drawer */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} aria-hidden="true" />
       )}
       <div
-        className={`fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col shadow-2xl lg:hidden transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 z-50 h-full w-[280px] flex flex-col shadow-2xl lg:hidden transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
         style={{ background: '#8A88DA' }}
       >
-        {/* Close button inside drawer */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl leading-none z-10"
-          aria-label="Close menu"
-        >✕</button>
+        <button type="button" onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl leading-none z-10" aria-label="Close menu">✕</button>
         <SidebarInner view={view} setView={setView} counts={counts} onLogout={onLogout} onClose={onClose} />
       </div>
     </>
   )
 }
-

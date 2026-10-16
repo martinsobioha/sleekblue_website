@@ -12,31 +12,15 @@
 
 ## 📐 System Architecture
 
-The application adopts a **Unified Single-Process Architecture** combining an Express 5 REST API Engine with a Vite-compiled React Single Page Application (SPA).
+This repository currently contains **two distinct application/data paths**. Do not treat them as one unified database-backed system without an explicit migration plan.
 
-```
-                      ┌─────────────────────────────────────────┐
-                      │              Web Client                 │
-                      │   (React SPA + React Router v7)         │
-                      └────────────────────┬────────────────────┘
-                                           │
-                                     HTTP / HTTPS
-                                           │
-                      ┌────────────────────▼────────────────────┐
-                      │            Express 5 Server             │
-                      │              (server.js)                │
-                      └─────────┬─────────────────────┬─────────┘
-                                │                     │
-                 ┌──────────────▼──────┐       ┌──────▼──────────────┐
-                 │  REST API Engine    │       │ Static Asset Server │
-                 │ (/api/v1/* Routes)  │       │   (no-cache SPA)    │
-                 └──────────────┬──────┘       └─────────────────────┘
-                                │
-                 ┌──────────────▼──────┐
-                 │ Atomic File Storage │
-                 │ (.tmp -> renameSync)│
-                 └─────────────────────┘
-```
+- **Storefront and existing site operations:** React/Vite frontend served by the Express application. The repository's architecture documents describe JSON-file persistence for several storefront records, including orders and CMS data.
+- **Sticker Balance:** a React page that calls Supabase directly for customer balances, deliveries, usage history and customer-link RPCs.
+- **Business Book:** a separate Supabase-backed business workflow with its own migration under `supabase/migrations`.
+
+The live production source and deployment status must be verified with the site operator; this repository's `main` branch alone does not prove what is running at `sleekbluemedia.com`.
+
+Before changing shared data architecture, review [the Sticker Balance foundation audit](docs/STICKER_BALANCE_AUDIT.md) and the existing [architecture document](docs/ARCHITECTURE.md).
 
 ---
 

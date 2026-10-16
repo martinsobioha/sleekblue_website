@@ -27,6 +27,7 @@ const NewsletterView = lazy(() => import('./admin/NewsletterManager').then(m => 
 const CommentsView = lazy(() => import('./admin/CommentsModerator').then(m => ({ default: m.CommentsView })))
 const ReviewsPendingView = lazy(() => import('./admin/ReviewsPending').then(m => ({ default: m.ReviewsPendingView })))
 const ReferralsView = lazy(() => import('./admin/ReferralsManager').then(m => ({ default: m.ReferralsView })))
+const OrdersView = lazy(() => import('./admin/OrdersManager').then(m => ({ default: m.OrdersView })))
 
 const Sidebar = lazy(() => import('./admin/Sidebar').then(m => ({ default: m.Sidebar })))
 const LoginScreen = lazy(() => import('./admin/LoginScreen').then(m => ({ default: m.LoginScreen })))
@@ -36,7 +37,9 @@ const NAV_ITEMS = [
   { id: 'page-editor',     icon: '🧩', label: 'Page Editor' },
   { id: 'image-manager',   icon: '🖼️', label: 'Image Manager' },
   { id: 'products',        icon: '🛍️', label: 'Products' },
+  { id: 'orders',          icon: '🛒', label: 'Orders' },
   { id: 'sticker-prices',  icon: '🏷️', label: 'Sticker Prices' },
+  { id: 'business-book',   icon: '📒', label: 'Business Book' },
   { id: 'blog',            icon: '✍️', label: 'Blog' },
   { id: 'about',           icon: '📖', label: 'About Us' },
   { id: 'content',         icon: '🎨', label: 'Content CMS' },
@@ -190,7 +193,9 @@ export default function AdminPage() {
             {view === 'page-editor'    && <PageEditorView token={token} />}
             {view === 'image-manager'  && <ImageManager token={token} />}
             {view === 'products'       && <ProductsView token={token} productOverrides={siteData.productOverrides} onDataChanged={fetchAll} />}
+            {view === 'orders'         && <OrdersView token={token} />}
             {view === 'sticker-prices' && <StickerPricesView token={token} stickerPriceOverrides={siteData.stickerPriceOverrides} onDataChanged={fetchAll} />}
+            {view === 'business-book' && <div className="rounded-xl bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold text-slate-800">Client business records</h2><p className="mt-1 text-sm text-slate-500">Onboard clients and manage their business books.</p><a className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white" href="/business-admin">Open Business Book</a></div>}
             {view === 'blog'           && <BlogView token={token} onDataChanged={fetchAll} />}
             {view === 'about'          && <AboutView token={token} />}
             {view === 'faq'            && <FaqView token={token} />}

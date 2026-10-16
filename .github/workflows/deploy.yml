@@ -24,6 +24,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate required deployment secrets
+        shell: bash
+        env:
+          HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
+          HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -n "$HOSTINGER_HOST" ]] || missing+=("HOSTINGER_HOST")
+          [[ -n "$HOSTINGER_USER" ]] || missing+=("HOSTINGER_USER")
+          [[ -n "$HOSTINGER_SSH_KEY" ]] || missing+=("HOSTINGER_SSH_KEY")
+          [[ -n "$HOSTINGER_APP_PATH" ]] || missing+=("HOSTINGER_APP_PATH")
+          if (( ${#missing[@]} )); then
+            printf 'Deployment not started. Configure these GitHub Actions secrets: %s\\n' "${missing[*]}"
+            exit 1
+          fi
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:

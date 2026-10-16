@@ -573,7 +573,7 @@ export function ReportsView({ token }) {
 
           <Card>
             <h3 className="mb-4 text-sm font-semibold text-slate-900">💼 Financial Report — Product Interest Summary</h3>
-            <p className="text-sm text-slate-500 mb-4">Since Sleekblue orders are completed via WhatsApp, this report shows customer interest signals — cart additions and quote requests — as a proxy for financial demand.</p>
+            <p className="text-sm text-slate-500 mb-4">Real paid orders and revenue are under Admin → Orders. This report shows browsing interest (cart adds, product views, quotes) so you can see demand before checkout.</p>
             {cartAdds.length === 0 ? (
               <p className="text-sm text-slate-500">No cart data yet. Analytics tracking will capture cart additions as customers browse.</p>
             ) : (

@@ -25,21 +25,21 @@ export function track(event) {
 }
 
 export function trackPageView(page) {
-  track({ type: 'pageview', page: page || window.location.pathname })
+  track({ type: 'page_view', page: page || window.location.pathname, path: page || window.location.pathname })
 }
 
 export function trackProductView(slug, name) {
-  track({ type: 'product_view', slug, name, page: window.location.pathname })
+  track({ type: 'product_view', slug, name, page: window.location.pathname, path: window.location.pathname })
 }
 
 export function trackCartAdd(slug, name, qty, price) {
-  track({ type: 'cart_add', slug, name, qty: qty || 1, price, page: window.location.pathname })
+  track({ type: 'cart_add', slug, name, qty: qty || 1, price, page: window.location.pathname, path: window.location.pathname })
 }
 
 export function trackInteraction(eventName, target) {
-  track({ type: 'interaction', event: eventName, target, page: window.location.pathname })
+  track({ type: 'interaction', event: eventName, target, page: window.location.pathname, path: window.location.pathname })
 }
 
 export function trackQuoteRequest(slug, details) {
-  track({ type: 'quote_request', slug, details, page: window.location.pathname })
+  track({ type: 'quote_request', slug, details, page: window.location.pathname, path: window.location.pathname })
 }
